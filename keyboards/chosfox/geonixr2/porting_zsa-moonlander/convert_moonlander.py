@@ -3,7 +3,7 @@
 convert_moonlander.py
 Porta el keymap ZSA Moonlander al Chosfox Geonix R2.
 
-Estado actual: Fase 3 -- Tap Dance, macros ST_MACRO_*, DUAL_FUNC.
+Estado actual: Fase 4 -- config.h con timings y parametros avanzados.
 """
 
 import re
@@ -89,8 +89,54 @@ def parse_moonlander_layers(content: str) -> dict:
 
 
 # ==============================================================================
-# PARSEO DE BLOQUES ESPECIALES DEL FUENTE MOONLANDER
+# FASE 4: PARSEO DE config.h DEL FUENTE MOONLANDER
+# Extrae defines de timing y comportamiento seguros para el Geonix R2.
+# Descarta defines ZSA-exclusivos o de Fase 5 (RGB).
 # ==============================================================================
+
+# Defines que se omiten aunque aparezcan en el config.h fuente:
+_CONFIG_BLOCKLIST = {
+    "SERIAL_NUMBER",        # identificador unico ZSA, no aplica
+    "RGB_MATRIX_STARTUP_SPD", # Fase 5
+    "RGB_MATRIX_STARTUP_MODE",
+    "RGB_MATRIX_STARTUP_HUE",
+    "RGB_MATRIX_STARTUP_SAT",
+    "RGB_MATRIX_STARTUP_VAL",
+    "ORYX_CONFIGURATOR",    # ZSA-specific
+    "FIRMWARE_VERSION",     # ZSA-specific
+}
+
+def parse_ref_config_h(ref_dir: str) -> str:
+    """
+    Lee el config.h del fuente Moonlander y extrae solo los defines
+    que son seguros para el Geonix R2.
+    Devuelve el bloque listo para escribir en el config.h generado.
+    """
+    path = os.path.join(ref_dir, "config.h")
+    if not os.path.exists(path):
+        return ""
+
+    lines = []
+    with open(path, "r", encoding="utf-8") as f:
+        raw = f.read()
+
+    for line in raw.splitlines():
+        stripped = line.strip()
+        # Solo procesar lineas #define
+        if not stripped.startswith("#define"):
+            continue
+        # Extraer nombre del define
+        parts = stripped.split()
+        define_name = parts[1] if len(parts) > 1 else ""
+        if define_name in _CONFIG_BLOCKLIST:
+            continue
+        lines.append(line)
+
+    if not lines:
+        return ""
+    return "\n".join(lines)
+
+
 def _extract_block(content: str, open_pos: int) -> str:
     """Extrae el bloque delimitado por llaves comenzando en open_pos ('{')."""
     depth = 1
@@ -350,13 +396,14 @@ def generate_keymap_c(layer_blocks: list, pre_blocks: list, post_blocks: list) -
 def generate_rules_mk() -> str:
     return (
         "# Generado automaticamente por convert_moonlander.py\n"
-        "# Fase 3: Tap Dance + macros ST_MACRO_* + DUAL_FUNC\n"
+        "# Fase 4: config avanzada + timings portados\n"
         "\n"
         "# DYNAMIC_KEYMAP_ENABLE debe quedar en yes: el rules.mk del teclado\n"
-        "# incluye quantum/dynamic_keymap.c incondicionalmente y necesita esta flag.\n"
+        "# incluye quantum/dynamic_keymap.c incondicionalmente.\n"
         "DYNAMIC_KEYMAP_ENABLE = yes\n"
         "\n"
         "VIA_ENABLE            = no\n"
+        "SPACE_CADET_ENABLE    = no\n"
         "\n"
         "TAP_DANCE_ENABLE      = yes\n"
         "MOUSEKEY_ENABLE       = yes\n"
@@ -364,12 +411,19 @@ def generate_rules_mk() -> str:
     )
 
 
-def generate_config_h() -> str:
-    return "// Keymap config -- generado por convert_moonlander.py (Fase 3)\n"
+def generate_config_h(ported_defines: str) -> str:
+    lines = [
+        "// Keymap config -- generado por convert_moonlander.py (Fase 4)",
+        "// Defines portados del config.h Moonlander (ZSA-exclusivos omitidos).",
+        "",
+    ]
+    if ported_defines:
+        lines.append(ported_defines)
+    return "\n".join(lines) + "\n"
 
 
 def generate_version_h() -> str:
-    return '#define QMK_VERSION "ems107-port-phase3"\n'
+    return '#define QMK_VERSION "ems107-port-phase4"\n'
 
 
 # ==============================================================================
@@ -377,8 +431,8 @@ def generate_version_h() -> str:
 # ==============================================================================
 def run():
     print("\n" + "=" * 60)
-    print("  convert_moonlander.py -- Fase 3")
-    print("  Todas las capas + Tap Dance + macros ST_MACRO_*")
+    print("  convert_moonlander.py -- Fase 4")
+    print("  Config avanzada: timings y parametros portados")
     print("=" * 60 + "\n")
 
     for path, label in [(PATH_SOURCE, "keymap.c fuente"), (PATH_MAPPING, "mapping.json")]:
@@ -423,6 +477,15 @@ def run():
     td_block     = parse_tap_dance_block(content)
     proc_record  = parse_process_record_user(content)
 
+    # --- Fase 4: extraer defines del config.h fuente ---
+    ported_defines = parse_ref_config_h(PATH_REF_DIR)
+    if ported_defines:
+        print(f"[OK] config.h defines portados:")
+        for line in ported_defines.splitlines():
+            print(f"       {line}")
+    else:
+        print("[INFO] config.h fuente sin defines portables.")
+
     for name, val in [("custom_keycodes enum", custom_enum),
                       ("tap_dance_codes enum", td_enum),
                       ("tap dance block",      td_block),
@@ -449,7 +512,7 @@ def run():
     files = {
         "keymap.c":  keymap_c,
         "rules.mk":  generate_rules_mk(),
-        "config.h":  generate_config_h(),
+        "config.h":  generate_config_h(ported_defines),
         "version.h": generate_version_h(),
     }
     for filename, content_out in files.items():
@@ -462,7 +525,7 @@ def run():
     print("[OK] i18n.h")
 
     print(f"\n{'=' * 60}")
-    print(f"  Fase 3 completada -> {os.path.normpath(PATH_TARGET)}")
+    print(f"  Fase 4 completada -> {os.path.normpath(PATH_TARGET)}")
     print(f"{'=' * 60}")
     print("\nPara compilar (PowerShell):")
     print('  $env:MSYSTEM="MINGW64"; $env:CHERE_INVOKING="1"')
