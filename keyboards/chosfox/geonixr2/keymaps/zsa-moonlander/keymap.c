@@ -30,10 +30,10 @@ enum tap_dance_codes {
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [0] = LAYOUT_tkl_ansi(
-        KC_TRNS,  KC_TRNS, KC_TRNS,  MO(5),       KC_LEFT_SHIFT, MO(2),        MO(6),              KC_SPACE, MO(4), KC_TRNS,     KC_TRNS, KC_TRNS,
-        KC_ENTER, KC_DOT,  KC_COMMA, KC_H,        KC_K,          LGUI(KC_TAB), LALT(LCTL(KC_TAB)), KC_V,     KC_D,  TD(DANCE_0), KC_X,    KC_Z,
-        KC_O,     KC_I,    KC_E,     TD(DANCE_1), KC_M,          MO(8),        MO(7),              KC_G,     KC_T,  KC_S,        KC_R,    KC_A,
-        KC_BSPC,  KC_Y,    KC_U,     KC_L,        KC_J,                        KC_TRNS,            KC_B,     KC_P,  KC_F,        KC_W,    KC_Q
+        KC_TRNS,  KC_RIGHT, KC_LEFT,  MO(5),       KC_LEFT_SHIFT, MO(2),        MO(6),              KC_SPACE, MO(4), KC_UP,       KC_DOWN, KC_TRNS,
+        KC_ENTER, KC_DOT,   KC_COMMA, KC_H,        KC_K,          LGUI(KC_TAB), LALT(LCTL(KC_TAB)), KC_V,     KC_D,  TD(DANCE_0), KC_X,    KC_Z,
+        KC_O,     KC_I,     KC_E,     TD(DANCE_1), KC_M,          MO(8),        MO(7),              KC_G,     KC_T,  KC_S,        KC_R,    KC_A,
+        KC_BSPC,  KC_Y,     KC_U,     KC_L,        KC_J,                        KC_TRNS,            KC_B,     KC_P,  KC_F,        KC_W,    KC_Q
     ),
     [1] = LAYOUT_tkl_ansi(
         KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRANSPARENT, LT(3, KC_SPACE), ES_TILD,        KC_TRANSPARENT, KC_SPACE,   KC_TRANSPARENT, KC_TRNS,    KC_TRNS,    KC_TRNS,

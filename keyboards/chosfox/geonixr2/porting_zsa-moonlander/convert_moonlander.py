@@ -459,8 +459,9 @@ def build_rgb_post_block(content: str, adapted_layers: dict) -> str:
 # ==============================================================================
 # CONSTRUCCION DEL LAYOUT GEONIX
 # ==============================================================================
-def build_layout_block(layer_num: int, layer_data: dict, geonix_mapping: list,
-                       invert: bool, resolver, warnings: list) -> str:
+def build_keycodes(layer_num: int, layer_data: dict, geonix_mapping: list,
+                   invert: bool, resolver, warnings: list) -> list:
+    """Genera la lista de 47 keycodes para una capa sin formatear."""
     grid = [row[:] for row in geonix_mapping]
     if invert:
         grid = [row[::-1] for row in grid[::-1]]
@@ -472,7 +473,41 @@ def build_layout_block(layer_num: int, layer_data: dict, geonix_mapping: list,
             all_keys.append(resolver(moon_id, layer_data, warnings))
     assert len(all_keys) == 47, \
         f"[BUG] Capa {layer_num}: {len(all_keys)} keycodes, se esperan 47"
-    return _format_layout_block(layer_num, all_keys)
+    return all_keys
+
+
+def apply_override_patch(keycodes: list, override_matrix: list, invert: bool) -> tuple:
+    """
+    Parchea la lista de 47 keycodes con los valores no vacios del override.
+    override_matrix: lista 4x12 con QMK keycodes o strings vacios.
+    Mismo tratamiento que geonix_layout: aplica invert y skip [3][6].
+    Retorna (lista_parchada, num_posiciones_parchadas).
+    """
+    grid = [row[:] for row in override_matrix]
+    if invert:
+        grid = [row[::-1] for row in grid[::-1]]
+    flat = []
+    for r_idx, row in enumerate(grid):
+        for c_idx, val in enumerate(row):
+            if r_idx == 3 and c_idx == 6:
+                continue
+            flat.append(val)
+    if len(flat) != 47:
+        raise ValueError(f"Override matrix genera {len(flat)} entradas, se esperan 47")
+    patched = keycodes[:]
+    count = 0
+    for i, val in enumerate(flat):
+        if val and val.strip():
+            patched[i] = val.strip()
+            count += 1
+    return patched, count
+
+
+def build_layout_block(layer_num: int, layer_data: dict, geonix_mapping: list,
+                       invert: bool, resolver, warnings: list) -> str:
+    """Wrapper de compatibilidad: genera keycodes y formatea."""
+    keys = build_keycodes(layer_num, layer_data, geonix_mapping, invert, resolver, warnings)
+    return _format_layout_block(layer_num, keys)
 
 
 def _format_layout_block(layer_num: int, keys: list) -> str:
@@ -611,10 +646,24 @@ def run():
     # --- Generar todas las capas con resolver Fase 3 ---
     warnings = []
     layer_blocks = []
+    overrides = mapping_data.get("overrides", {})
+
+    warnings = []
+    layer_blocks = []
+    total_patched = 0
     for layer_num in sorted(moon_layers.keys()):
-        block = build_layout_block(layer_num, moon_layers[layer_num], geonix_mapping,
-                                   invert_layout, resolve_keycode_phase3, warnings)
+        keycodes = build_keycodes(layer_num, moon_layers[layer_num], geonix_mapping,
+                                  invert_layout, resolve_keycode_phase3, warnings)
+        override_key = str(layer_num)
+        if override_key in overrides:
+            keycodes, patch_count = apply_override_patch(keycodes, overrides[override_key], invert_layout)
+            if patch_count > 0:
+                print(f"[INFO] Override capa {layer_num}: {patch_count} posicion(es) parchada(s)")
+                total_patched += patch_count
+        block = _format_layout_block(layer_num, keycodes)
         layer_blocks.append(block)
+    if total_patched:
+        print(f"[INFO] Total overrides aplicados: {total_patched} posiciones")
     print(f"[INFO] Capas generadas: {sorted(moon_layers.keys())}")
 
     # --- Extraer bloques del fuente Moonlander ---
