@@ -1,5 +1,5 @@
 # Generado automaticamente por convert_moonlander.py
-# Fase 1: capa 0, keycodes basicos unicamente
+# Fase 2: todas las capas, keycodes extendidos
 
 # DYNAMIC_KEYMAP_ENABLE debe quedar en yes: el rules.mk del teclado
 # incluye quantum/dynamic_keymap.c incondicionalmente y necesita esta flag.

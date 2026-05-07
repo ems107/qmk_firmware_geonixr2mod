@@ -1,1 +1,1 @@
-#define QMK_VERSION "ems107-port-phase1"
+#define QMK_VERSION "ems107-port-phase2"

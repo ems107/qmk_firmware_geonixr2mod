@@ -1,1 +1,1 @@
-// Keymap config — generado por convert_moonlander.py (Fase 1)
+// Keymap config — generado por convert_moonlander.py (Fase 2)

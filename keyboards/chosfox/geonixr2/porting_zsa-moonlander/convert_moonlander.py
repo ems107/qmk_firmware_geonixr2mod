@@ -3,7 +3,7 @@
 convert_moonlander.py
 Porta el keymap ZSA Moonlander al Chosfox Geonix R2.
 
-Estado actual: Fase 1 — capa 0, keycodes básicos KC_* únicamente.
+Estado actual: Fase 2 — todas las capas, keycodes extendidos.
 """
 
 import re
@@ -96,14 +96,82 @@ def parse_moonlander_layers(content: str) -> dict:
 
 
 # ==============================================================================
-# GENERACIÓN DEL LAYOUT GEONIX
+# FASE 2: RESOLVER DE KEYCODES EXTENDIDOS
+# Enfoque blocklist: todo pasa salvo patrones ZSA-exclusivos o de fases futuras.
+# Keycodes no soportados -> KC_TRNS + warning en consola.
 # ==============================================================================
-def resolve_keycode_phase1(moon_id: str, layer_data: dict, warnings: list) -> str:
+_BLOCKED_PHASE2 = [
+    # Fase 3: Tap Dance y macros de string
+    re.compile(r'^TD\('),
+    re.compile(r'^ST_MACRO_\d+$'),
+    re.compile(r'^DUAL_FUNC_\d+$'),
+    # Fase 5: RGB ZSA-exclusivo
+    re.compile(r'^RGB_SLD$'),
+    re.compile(r'^HSV_\d+_\d+_\d+$'),
+    re.compile(r'^TOGGLE_LAYER_COLOR$'),
+    # Audio (no disponible en este firmware)
+    re.compile(r'^AU_TOGG$'),
+    re.compile(r'^MU_TOGG$'),
+    re.compile(r'^MU_NEXT$'),
+]
+
+# Tabla de traduccion de keycodes renombrados en versiones modernas de QMK.
+_KEYCODE_TRANSLATIONS = {
+    # Mouse cursor (KC_MS_* -> MS_*)
+    "KC_MS_UP":    "MS_UP",
+    "KC_MS_DOWN":  "MS_DOWN",
+    "KC_MS_LEFT":  "MS_LEFT",
+    "KC_MS_RIGHT": "MS_RGHT",    # Ojo: RGHT, no RIGHT
+    # Mouse buttons (KC_MS_BTN* -> MS_BTN*)
+    "KC_MS_BTN1": "MS_BTN1",
+    "KC_MS_BTN2": "MS_BTN2",
+    "KC_MS_BTN3": "MS_BTN3",
+    "KC_MS_BTN4": "MS_BTN4",
+    "KC_MS_BTN5": "MS_BTN5",
+    # Mouse wheel (KC_MS_WH_* -> MS_WHL*)
+    "KC_MS_WH_UP":    "MS_WHLU",
+    "KC_MS_WH_DOWN":  "MS_WHLD",
+    "KC_MS_WH_LEFT":  "MS_WHLL",
+    "KC_MS_WH_RIGHT": "MS_WHLR",
+    # Mouse acceleration (KC_MS_ACCEL* -> MS_ACL*)
+    "KC_MS_ACCEL0": "MS_ACL0",
+    "KC_MS_ACCEL1": "MS_ACL1",
+    "KC_MS_ACCEL2": "MS_ACL2",
+    # RGB matrix (RGB_* -> RM_*)
+    "RGB_TOG":          "RM_TOGG",
+    "RGB_MODE_FORWARD": "RM_NEXT",
+    "RGB_MODE_REVERSE": "RM_PREV",
+    "RGB_HUI": "RM_HUEU",
+    "RGB_HUD": "RM_HUED",
+    "RGB_SAI": "RM_SATU",
+    "RGB_SAD": "RM_SATD",
+    "RGB_VAI": "RM_VALU",
+    "RGB_VAD": "RM_VALD",
+    "RGB_SPI": "RM_SPDU",
+    "RGB_SPD": "RM_SPDD",
+}
+
+def translate_keycode(keycode: str) -> str:
     """
-    Fase 1: resuelve el keycode para una posición del Geonix.
-    - moon_id vacío ("") -> KC_TRNS (posición sin asignación en el mapping)
-    - keycode básico KC_* -> se usa tal cual
-    - cualquier otro -> KC_TRNS + warning
+    Traduce keycodes renombrados entre versiones de QMK.
+    Para keycodes compuestos (ej. LSFT(KC_MS_BTN1)) aplica la traduccion
+    sobre el contenido interno si el keycode completo no esta en la tabla.
+    """
+    # Traduccion directa (keycode simple)
+    if keycode in _KEYCODE_TRANSLATIONS:
+        return _KEYCODE_TRANSLATIONS[keycode]
+    # Para keycodes compuestos, sustituir ocurrencias internas
+    result = keycode
+    for old, new in _KEYCODE_TRANSLATIONS.items():
+        result = result.replace(old, new)
+    return result
+
+
+def resolve_keycode_phase2(moon_id: str, layer_data: dict, warnings: list) -> str:
+    """
+    Fase 2: acepta todos los keycodes QMK estandar y de i18n (ES_*).
+    Bloquea solo patrones de fases futuras o ZSA-exclusivos.
+    Traduce keycodes renombrados en versiones modernas de QMK.
     """
     if not moon_id:
         return "KC_TRNS"
@@ -112,11 +180,12 @@ def resolve_keycode_phase1(moon_id: str, layer_data: dict, warnings: list) -> st
     if not keycode:
         return "KC_TRNS"
 
-    if is_basic_keycode(keycode):
-        return keycode
+    for pattern in _BLOCKED_PHASE2:
+        if pattern.search(keycode):
+            warnings.append(f"    {moon_id:5s}: '{keycode}' -> KC_TRNS  (no soportado en Fase 2)")
+            return "KC_TRNS"
 
-    warnings.append(f"    {moon_id:5s}: '{keycode}' -> KC_TRNS  (no soportado en Fase 1)")
-    return "KC_TRNS"
+    return translate_keycode(keycode)
 
 
 def build_layout_block(layer_num: int, layer_data: dict, geonix_mapping: list,
@@ -222,7 +291,7 @@ def generate_keymap_c(layer_blocks: list) -> str:
 def generate_rules_mk() -> str:
     return (
         "# Generado automaticamente por convert_moonlander.py\n"
-        "# Fase 1: capa 0, keycodes basicos unicamente\n"
+        "# Fase 2: todas las capas, keycodes extendidos\n"
         "\n"
         "# DYNAMIC_KEYMAP_ENABLE debe quedar en yes: el rules.mk del teclado\n"
         "# incluye quantum/dynamic_keymap.c incondicionalmente y necesita esta flag.\n"
@@ -238,11 +307,11 @@ def generate_rules_mk() -> str:
 
 
 def generate_config_h() -> str:
-    return "// Keymap config — generado por convert_moonlander.py (Fase 1)\n"
+    return "// Keymap config — generado por convert_moonlander.py (Fase 2)\n"
 
 
 def generate_version_h() -> str:
-    return '#define QMK_VERSION "ems107-port-phase1"\n'
+    return '#define QMK_VERSION "ems107-port-phase2"\n'
 
 
 # ==============================================================================
@@ -250,8 +319,8 @@ def generate_version_h() -> str:
 # ==============================================================================
 def run():
     print("\n" + "=" * 60)
-    print("  convert_moonlander.py — Fase 1")
-    print("  Capa 0 · solo keycodes básicos KC_*")
+    print("  convert_moonlander.py — Fase 2")
+    print("  Todas las capas · keycodes extendidos")
     print("=" * 60 + "\n")
 
     # Validaciones
@@ -271,7 +340,7 @@ def run():
         mapping_data = json.load(f)
     geonix_mapping = mapping_data["geonix_layout"]
     invert_layout  = mapping_data.get("invert_layout", False)
-    print(f"[INFO] mapping.json: grid {len(geonix_mapping)}×{len(geonix_mapping[0])}, invert={invert_layout}")
+    print(f"[INFO] mapping.json: grid {len(geonix_mapping)}x{len(geonix_mapping[0])}, invert={invert_layout}")
 
     # Parsear capas Moonlander
     with open(PATH_SOURCE, "r", encoding="utf-8") as f:
@@ -280,25 +349,24 @@ def run():
     print(f"[INFO] Capas encontradas en fuente Moonlander: {sorted(moon_layers.keys())}")
 
     if 0 not in moon_layers:
-        print("[ERROR] No se encontró la capa 0 en el keymap Moonlander fuente.")
+        print("[ERROR] No se encontro la capa 0 en el keymap Moonlander fuente.")
         return False
 
-    # --- Fase 1: generar solo capa 0 ---
+    # --- Fase 2: generar TODAS las capas ---
     warnings = []
-    block = build_layout_block(0, moon_layers[0], geonix_mapping, invert_layout,
-                               resolve_keycode_phase1, warnings)
-    layer_blocks = [block]
-
-    omitted = sorted(n for n in moon_layers if n != 0)
-    if omitted:
-        print(f"[INFO] Capas omitidas (Fase 1): {omitted} -> se añadirán en Fase 2")
+    layer_blocks = []
+    for layer_num in sorted(moon_layers.keys()):
+        block = build_layout_block(layer_num, moon_layers[layer_num], geonix_mapping,
+                                   invert_layout, resolve_keycode_phase2, warnings)
+        layer_blocks.append(block)
+    print(f"[INFO] Capas generadas: {sorted(moon_layers.keys())}")
 
     if warnings:
-        print(f"\n[WARN] {len(warnings)} keycode(s) no soportados -> KC_TRNS:")
-        for w in warnings:
+        # Agrupar warnings por keycode para no repetir
+        unique = sorted(set(warnings))
+        print(f"\n[WARN] {len(unique)} sustitucion(es) -> KC_TRNS (keycodes de fases futuras):")
+        for w in unique:
             print(w)
-    else:
-        print("[INFO] Sin warnings — todos los keycodes de la capa 0 son básicos.")
 
     # Escribir archivos
     print()
@@ -319,7 +387,7 @@ def run():
     print("[OK] i18n.h")
 
     print(f"\n{'=' * 60}")
-    print(f"  Fase 1 completada -> {os.path.normpath(PATH_TARGET)}")
+    print(f"  Fase 2 completada -> {os.path.normpath(PATH_TARGET)}")
     print(f"{'=' * 60}")
     print("\nPara compilar (PowerShell):")
     print('  $env:MSYSTEM="MINGW64"; $env:CHERE_INVOKING="1"')

@@ -5,10 +5,76 @@
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [0] = LAYOUT_tkl_ansi(
-        KC_TRNS,  KC_TRNS, KC_TRNS,  KC_TRNS, KC_LEFT_SHIFT, KC_TRNS, KC_TRNS, KC_SPACE, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,
-        KC_ENTER, KC_DOT,  KC_COMMA, KC_H,    KC_K,          KC_TRNS, KC_TRNS, KC_V,     KC_D,    KC_TRNS, KC_X,    KC_Z,
-        KC_O,     KC_I,    KC_E,     KC_TRNS, KC_M,          KC_TRNS, KC_TRNS, KC_G,     KC_T,    KC_S,    KC_R,    KC_A,
-        KC_BSPC,  KC_Y,    KC_U,     KC_L,    KC_J,                   KC_TRNS, KC_B,     KC_P,    KC_F,    KC_W,    KC_Q
+        KC_TRNS,  KC_TRNS, KC_TRNS,  MO(5),   KC_LEFT_SHIFT, MO(2),   MO(6),   KC_SPACE, MO(4), KC_TRNS, KC_TRNS, KC_TRNS,
+        KC_ENTER, KC_DOT,  KC_COMMA, KC_H,    KC_K,          KC_TRNS, KC_TRNS, KC_V,     KC_D,  KC_TRNS, KC_X,    KC_Z,
+        KC_O,     KC_I,    KC_E,     KC_TRNS, KC_M,          KC_TRNS, KC_TRNS, KC_G,     KC_T,  KC_S,    KC_R,    KC_A,
+        KC_BSPC,  KC_Y,    KC_U,     KC_L,    KC_J,                   KC_TRNS, KC_B,     KC_P,  KC_F,    KC_W,    KC_Q
+    ),
+    [1] = LAYOUT_tkl_ansi(
+        KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRANSPARENT, LT(3, KC_SPACE), ES_TILD, KC_TRANSPARENT, KC_SPACE,   KC_TRANSPARENT, KC_TRNS,    KC_TRNS,    KC_TRNS,
+        ES_UNDS,    ES_COLN,    ES_SCLN,    LSFT(KC_H),     LSFT(KC_K),      KC_TRNS, KC_TRNS,        LSFT(KC_V), LSFT(KC_D),     LSFT(KC_C), LSFT(KC_X), LSFT(KC_Z),
+        LSFT(KC_O), LSFT(KC_I), LSFT(KC_E), LSFT(KC_N),     LSFT(KC_M),      KC_TRNS, KC_TRNS,        LSFT(KC_G), LSFT(KC_T),     LSFT(KC_S), LSFT(KC_R), LSFT(KC_A),
+        ES_DQUO,    LSFT(KC_Y), LSFT(KC_U), LSFT(KC_L),     LSFT(KC_J),               KC_TRNS,        LSFT(KC_B), LSFT(KC_P),     LSFT(KC_F), LSFT(KC_W), LSFT(KC_Q)
+    ),
+    [2] = LAYOUT_tkl_ansi(
+        KC_TRNS, KC_TRNS,    KC_TRNS, KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_TRANSPARENT, KC_NO,   KC_TRNS, KC_TRNS, KC_TRNS,
+        ES_QUES, LSFT(KC_1), ES_GRTR, ES_DQUO, ES_PIPE, KC_TRNS, KC_TRNS, ES_AMPR,        ES_RCBR, ES_RPRN, ES_RBRC, ES_SLSH,
+        KC_0,    KC_9,       KC_8,    KC_7,    KC_6,    KC_TRNS, KC_TRNS, KC_5,           KC_4,    KC_3,    KC_2,    KC_1,
+        ES_IQUE, ES_IEXL,    ES_LESS, ES_APOS, ES_EQL,           KC_TRNS, ES_HASH,        ES_LCBR, ES_LPRN, ES_LBRC, LALT(LCTL(ES_OVRR))
+    ),
+    [3] = LAYOUT_tkl_ansi(
+        KC_TRNS, KC_TRNS, KC_TRNS,    KC_TRANSPARENT,   KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRNS, KC_TRNS, KC_TRNS,
+        KC_TRNS, KC_TRNS, LSFT(KC_4), LALT(LCTL(KC_E)), KC_NO,          KC_TRNS,        KC_TRNS,        ES_NOT,         ES_PIPE,        KC_TRNS, ES_OVDT, KC_TRNS,
+        KC_TRNS, KC_TRNS, KC_TRNS,    KC_TRNS,          KC_TRNS,        KC_TRNS,        KC_TRNS,        ES_AT,          ES_AMPR,        ES_EQL,  ES_PLUS, KC_TRNS,
+        ES_OVRR, KC_TRNS, KC_TRNS,    KC_TRNS,          KC_TRNS,                        KC_TRNS,        KC_TRNS,        LSFT(KC_5),     ES_HASH, ES_ASTR, LSFT(ES_OVRR)
+    ),
+    [4] = LAYOUT_tkl_ansi(
+        KC_TRNS,        KC_TRNS,        KC_TRNS,        KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRNS,     KC_TRNS,     KC_TRNS,
+        KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRNS,        KC_TRNS,        KC_F5,          KC_F4,          KC_F3,       KC_F2,       KC_F1,
+        KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRNS,        KC_TRNS,        KC_F11,         KC_LEFT_SHIFT,  KC_LEFT_ALT, KC_LEFT_GUI, KC_LEFT_CTRL,
+        KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT,                 KC_TRNS,        KC_TRANSPARENT, MS_BTN1,        MS_BTN3,     MS_BTN2,     KC_LEFT_SHIFT
+    ),
+    [5] = LAYOUT_tkl_ansi(
+        KC_TRNS,        KC_TRNS,       KC_TRNS,     KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRNS,        KC_TRNS,        KC_TRNS,
+        KC_F10,         KC_F9,         KC_F8,       KC_F7,          KC_F6,          KC_TRNS,        KC_TRNS,        KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT,
+        KC_LEFT_CTRL,   KC_LEFT_GUI,   KC_LEFT_ALT, KC_LEFT_SHIFT,  KC_F12,         KC_TRNS,        KC_TRNS,        KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT,
+        KC_TRANSPARENT, LSFT(ES_ACUT), ES_GRV,      ES_ACUT,        ES_CIRC,                        KC_TRNS,        KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT
+    ),
+    [6] = LAYOUT_tkl_ansi(
+        KC_TRNS,  KC_TRNS,  KC_TRNS, KC_NO,   KC_WWW_FORWARD, KC_WWW_BACK, KC_NO,   KC_NO,         KC_NO,         KC_TRNS,     KC_TRNS,     KC_TRNS,
+        KC_ENTER, ES_PLUS,  KC_NO,   ES_MINS, KC_NO,          KC_TRNS,     KC_TRNS, KC_NO,         KC_NO,         KC_NO,       KC_NO,       KC_NO,
+        KC_TAB,   KC_RIGHT, KC_DOWN, KC_LEFT, KC_INSERT,      KC_TRNS,     KC_TRNS, KC_LEFT_SHIFT, KC_LEFT_SHIFT, KC_LEFT_ALT, KC_LEFT_GUI, KC_LEFT_CTRL,
+        KC_BSPC,  KC_END,   KC_UP,   KC_HOME, KC_DELETE,                   KC_TRNS, KC_NO,         KC_NO,         KC_NO,       KC_NO,       KC_ESCAPE
+    ),
+    [7] = LAYOUT_tkl_ansi(
+        KC_TRNS,        KC_TRNS,        KC_TRNS,        KC_WWW_BACK,    KC_WWW_FORWARD, KC_WWW_BACK, KC_TRANSPARENT, KC_WWW_BACK,    KC_WWW_FORWARD, KC_TRNS,        KC_TRNS,        KC_TRNS,
+        KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRNS,     KC_TRNS,        KC_TRANSPARENT, MS_ACL2,        MS_ACL1,        MS_ACL0,        KC_TRANSPARENT,
+        KC_F21,         MS_WHLR,        MS_WHLD,        MS_WHLL,        KC_F20,         KC_TRNS,     KC_TRNS,        KC_TRANSPARENT, MS_BTN1,        MS_BTN3,        MS_BTN2,        KC_TRANSPARENT,
+        KC_F19,         KC_F24,         MS_WHLU,        KC_F23,         KC_F18,                      KC_TRNS,        KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT
+    ),
+    [8] = LAYOUT_tkl_ansi(
+        KC_TRNS,        KC_TRNS,             KC_TRNS,             KC_TRANSPARENT,      KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRNS, KC_TRNS, KC_TRNS,
+        KC_TRANSPARENT, KC_TRANSPARENT,      KC_TRANSPARENT,      KC_TRANSPARENT,      KC_TRANSPARENT, KC_TRNS,        KC_TRNS,        KC_TRNS,        KC_TRNS,        RM_TOGG, KC_TRNS, RM_NEXT,
+        KC_TRANSPARENT, KC_AUDIO_VOL_UP,     KC_MEDIA_PLAY_PAUSE, KC_AUDIO_VOL_DOWN,   KC_AUDIO_MUTE,  KC_TRNS,        KC_TRNS,        KC_TRANSPARENT, RM_SPDU,        RM_VALU, RM_HUEU, RM_SATU,
+        KC_TRANSPARENT, KC_MEDIA_NEXT_TRACK, KC_MEDIA_STOP,       KC_MEDIA_PREV_TRACK, KC_TRANSPARENT,                 KC_TRNS,        KC_TRANSPARENT, RM_SPDD,        RM_VALD, RM_HUED, RM_SATD
+    ),
+    [9] = LAYOUT_tkl_ansi(
+        KC_TRNS,      KC_TRNS,      KC_TRNS,      KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRNS,      KC_TRNS,      KC_TRNS,
+        LALT(KC_F23), LALT(KC_F22), LALT(KC_F21), LALT(KC_F20),   LALT(KC_F19),   KC_TRNS,        KC_TRNS,        LALT(KC_F18),   LALT(KC_F17),   LALT(KC_F16), LALT(KC_F15), LALT(KC_F14),
+        LCTL(KC_F23), LCTL(KC_F22), LCTL(KC_F21), LCTL(KC_F20),   LCTL(KC_F19),   KC_TRNS,        KC_TRNS,        LCTL(KC_F18),   LCTL(KC_F17),   LCTL(KC_F16), LCTL(KC_F15), LCTL(KC_F14),
+        LSFT(KC_F23), LSFT(KC_F22), LSFT(KC_F21), LSFT(KC_F20),   LSFT(KC_F19),                   KC_TRNS,        LSFT(KC_F18),   LSFT(KC_F17),   LSFT(KC_F16), LSFT(KC_F15), LSFT(KC_F14)
+    ),
+    [10] = LAYOUT_tkl_ansi(
+        KC_TRNS, KC_TRNS, KC_TRNS, MS_BTN4, MS_BTN1, MS_ACL2, KC_F16,  KC_SPACE, KC_LEFT_ALT, KC_TRNS, KC_TRNS, KC_TRNS,
+        KC_NO,   KC_NO,   KC_NO,   KC_NO,   MS_ACL1, KC_TRNS, KC_TRNS, KC_V,     KC_C,        KC_X,    KC_F20,  KC_LEFT_CTRL,
+        MS_ACL0, MS_RGHT, MS_DOWN, MS_LEFT, TO(11),  KC_TRNS, KC_TRNS, KC_F,     KC_D,        KC_S,    KC_A,    KC_LEFT_SHIFT,
+        KC_NO,   MS_WHLU, MS_UP,   MS_WHLD, KC_NO,            KC_TRNS, KC_R,     KC_E,        KC_W,    KC_Q,    KC_TAB
+    ),
+    [11] = LAYOUT_tkl_ansi(
+        KC_TRNS, KC_TRNS, KC_TRNS, KC_NO, KC_Z,  KC_X,    KC_NO,   KC_W,  KC_NO, KC_TRNS, KC_TRNS, KC_TRNS,
+        KC_H,    KC_L,    KC_K,    KC_J,  KC_NO, KC_TRNS, KC_TRNS, KC_NO, KC_NO, KC_NO,   KC_NO,   KC_NO,
+        KC_Y,    KC_O,    KC_I,    KC_U,  KC_NO, KC_TRNS, KC_TRNS, KC_NO, KC_D,  KC_S,    KC_A,    KC_NO,
+        KC_NO,   KC_NO,   KC_NO,   KC_NO, KC_NO,          KC_TRNS, KC_NO, KC_NO, KC_W,    KC_NO,   KC_NO
     )
 };
 // clang-format on
