@@ -2,13 +2,38 @@
 #include "rdmctmzt_common.h"
 #include "i18n.h"
 
+enum custom_keycodes {
+    ST_MACRO_0 = SAFE_RANGE,
+    ST_MACRO_1,
+    ST_MACRO_2,
+    ST_MACRO_3,
+    ST_MACRO_4,
+    ST_MACRO_5,
+    ST_MACRO_6,
+    ST_MACRO_7,
+    ST_MACRO_8,
+    ST_MACRO_9,
+    ST_MACRO_10,
+    ST_MACRO_11,
+    ST_MACRO_12,
+    ST_MACRO_13,
+    ST_MACRO_14,
+};
+
+enum tap_dance_codes {
+  DANCE_0,
+  DANCE_1,
+};
+
+#define DUAL_FUNC_0 LT(14, KC_D)
+
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [0] = LAYOUT_tkl_ansi(
-        KC_TRNS,  KC_TRNS, KC_TRNS,  MO(5),   KC_LEFT_SHIFT, MO(2),   MO(6),   KC_SPACE, MO(4), KC_TRNS, KC_TRNS, KC_TRNS,
-        KC_ENTER, KC_DOT,  KC_COMMA, KC_H,    KC_K,          KC_TRNS, KC_TRNS, KC_V,     KC_D,  KC_TRNS, KC_X,    KC_Z,
-        KC_O,     KC_I,    KC_E,     KC_TRNS, KC_M,          KC_TRNS, KC_TRNS, KC_G,     KC_T,  KC_S,    KC_R,    KC_A,
-        KC_BSPC,  KC_Y,    KC_U,     KC_L,    KC_J,                   KC_TRNS, KC_B,     KC_P,  KC_F,    KC_W,    KC_Q
+        KC_TRNS,  KC_TRNS, KC_TRNS,  MO(5),       KC_LEFT_SHIFT, MO(2),   MO(6),   KC_SPACE, MO(4), KC_TRNS,     KC_TRNS, KC_TRNS,
+        KC_ENTER, KC_DOT,  KC_COMMA, KC_H,        KC_K,          KC_TRNS, KC_TRNS, KC_V,     KC_D,  TD(DANCE_0), KC_X,    KC_Z,
+        KC_O,     KC_I,    KC_E,     TD(DANCE_1), KC_M,          KC_TRNS, KC_TRNS, KC_G,     KC_T,  KC_S,        KC_R,    KC_A,
+        KC_BSPC,  KC_Y,    KC_U,     KC_L,        KC_J,                   KC_TRNS, KC_B,     KC_P,  KC_F,        KC_W,    KC_Q
     ),
     [1] = LAYOUT_tkl_ansi(
         KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRANSPARENT, LT(3, KC_SPACE), ES_TILD, KC_TRANSPARENT, KC_SPACE,   KC_TRANSPARENT, KC_TRNS,    KC_TRNS,    KC_TRNS,
@@ -23,10 +48,10 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         ES_IQUE, ES_IEXL,    ES_LESS, ES_APOS, ES_EQL,           KC_TRNS, ES_HASH,        ES_LCBR, ES_LPRN, ES_LBRC, LALT(LCTL(ES_OVRR))
     ),
     [3] = LAYOUT_tkl_ansi(
-        KC_TRNS, KC_TRNS, KC_TRNS,    KC_TRANSPARENT,   KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRNS, KC_TRNS, KC_TRNS,
-        KC_TRNS, KC_TRNS, LSFT(KC_4), LALT(LCTL(KC_E)), KC_NO,          KC_TRNS,        KC_TRNS,        ES_NOT,         ES_PIPE,        KC_TRNS, ES_OVDT, KC_TRNS,
-        KC_TRNS, KC_TRNS, KC_TRNS,    KC_TRNS,          KC_TRNS,        KC_TRNS,        KC_TRNS,        ES_AT,          ES_AMPR,        ES_EQL,  ES_PLUS, KC_TRNS,
-        ES_OVRR, KC_TRNS, KC_TRNS,    KC_TRNS,          KC_TRNS,                        KC_TRNS,        KC_TRNS,        LSFT(KC_5),     ES_HASH, ES_ASTR, LSFT(ES_OVRR)
+        KC_TRNS,     KC_TRNS,     KC_TRNS,     KC_TRANSPARENT,   KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRNS,    KC_TRNS, KC_TRNS,
+        ST_MACRO_14, ST_MACRO_13, LSFT(KC_4),  LALT(LCTL(KC_E)), KC_NO,          KC_TRNS,        KC_TRNS,        ES_NOT,         ES_PIPE,        ST_MACRO_3, ES_OVDT, ST_MACRO_2,
+        ST_MACRO_12, ST_MACRO_11, ST_MACRO_10, ST_MACRO_9,       ST_MACRO_8,     KC_TRNS,        KC_TRNS,        ES_AT,          ES_AMPR,        ES_EQL,     ES_PLUS, ST_MACRO_1,
+        ES_OVRR,     ST_MACRO_7,  ST_MACRO_6,  ST_MACRO_5,       ST_MACRO_4,                     KC_TRNS,        ST_MACRO_0,     LSFT(KC_5),     ES_HASH,    ES_ASTR, LSFT(ES_OVRR)
     ),
     [4] = LAYOUT_tkl_ansi(
         KC_TRNS,        KC_TRNS,        KC_TRNS,        KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRNS,     KC_TRNS,     KC_TRNS,
@@ -78,3 +103,224 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     )
 };
 // clang-format on
+
+typedef struct {
+    bool is_press_action;
+    uint8_t step;
+} tap;
+
+enum {
+    SINGLE_TAP = 1,
+    SINGLE_HOLD,
+    DOUBLE_TAP,
+    DOUBLE_HOLD,
+    DOUBLE_SINGLE_TAP,
+    MORE_TAPS
+};
+
+static tap dance_state[2];
+
+uint8_t dance_step(tap_dance_state_t *state);
+
+uint8_t dance_step(tap_dance_state_t *state) {
+    if (state->count == 1) {
+        if (state->interrupted || !state->pressed) return SINGLE_TAP;
+        else return SINGLE_HOLD;
+    } else if (state->count == 2) {
+        if (state->interrupted) return DOUBLE_SINGLE_TAP;
+        else if (state->pressed) return DOUBLE_HOLD;
+        else return DOUBLE_TAP;
+    }
+    return MORE_TAPS;
+}
+
+
+void on_dance_0(tap_dance_state_t *state, void *user_data);
+void dance_0_finished(tap_dance_state_t *state, void *user_data);
+void dance_0_reset(tap_dance_state_t *state, void *user_data);
+
+void on_dance_0(tap_dance_state_t *state, void *user_data) {
+    if(state->count == 3) {
+        tap_code16(KC_C);
+        tap_code16(KC_C);
+        tap_code16(KC_C);
+    }
+    if(state->count > 3) {
+        tap_code16(KC_C);
+    }
+}
+
+void dance_0_finished(tap_dance_state_t *state, void *user_data) {
+    dance_state[0].step = dance_step(state);
+    switch (dance_state[0].step) {
+        case SINGLE_TAP: register_code16(KC_C); break;
+        case DOUBLE_TAP: register_code16(KC_C); register_code16(KC_C); break;
+        case DOUBLE_HOLD: register_code16(ES_CCED); break;
+        case DOUBLE_SINGLE_TAP: tap_code16(KC_C); register_code16(KC_C);
+    }
+}
+
+void dance_0_reset(tap_dance_state_t *state, void *user_data) {
+    wait_ms(10);
+    switch (dance_state[0].step) {
+        case SINGLE_TAP: unregister_code16(KC_C); break;
+        case DOUBLE_TAP: unregister_code16(KC_C); break;
+        case DOUBLE_HOLD: unregister_code16(ES_CCED); break;
+        case DOUBLE_SINGLE_TAP: unregister_code16(KC_C); break;
+    }
+    dance_state[0].step = 0;
+}
+void on_dance_1(tap_dance_state_t *state, void *user_data);
+void dance_1_finished(tap_dance_state_t *state, void *user_data);
+void dance_1_reset(tap_dance_state_t *state, void *user_data);
+
+void on_dance_1(tap_dance_state_t *state, void *user_data) {
+    if(state->count == 3) {
+        tap_code16(KC_N);
+        tap_code16(KC_N);
+        tap_code16(KC_N);
+    }
+    if(state->count > 3) {
+        tap_code16(KC_N);
+    }
+}
+
+void dance_1_finished(tap_dance_state_t *state, void *user_data) {
+    dance_state[1].step = dance_step(state);
+    switch (dance_state[1].step) {
+        case SINGLE_TAP: register_code16(KC_N); break;
+        case DOUBLE_TAP: register_code16(KC_N); register_code16(KC_N); break;
+        case DOUBLE_HOLD: register_code16(ES_NTIL); break;
+        case DOUBLE_SINGLE_TAP: tap_code16(KC_N); register_code16(KC_N);
+    }
+}
+
+void dance_1_reset(tap_dance_state_t *state, void *user_data) {
+    wait_ms(10);
+    switch (dance_state[1].step) {
+        case SINGLE_TAP: unregister_code16(KC_N); break;
+        case DOUBLE_TAP: unregister_code16(KC_N); break;
+        case DOUBLE_HOLD: unregister_code16(ES_NTIL); break;
+        case DOUBLE_SINGLE_TAP: unregister_code16(KC_N); break;
+    }
+    dance_state[1].step = 0;
+}
+
+tap_dance_action_t tap_dance_actions[] = {
+        [DANCE_0] = ACTION_TAP_DANCE_FN_ADVANCED(on_dance_0, dance_0_finished, dance_0_reset),
+        [DANCE_1] = ACTION_TAP_DANCE_FN_ADVANCED(on_dance_1, dance_1_finished, dance_1_reset),
+};
+
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+
+  switch (keycode) {
+  case QK_MODS ... QK_MODS_MAX: 
+    // Mouse keys with modifiers work inconsistently across operating systems, this makes sure that modifiers are always
+    // applied to the mouse key that was pressed.
+    if (IS_MOUSE_KEYCODE(QK_MODS_GET_BASIC_KEYCODE(keycode))) {
+    if (record->event.pressed) {
+        add_mods(QK_MODS_GET_MODS(keycode));
+        send_keyboard_report();
+        wait_ms(2);
+        register_code(QK_MODS_GET_BASIC_KEYCODE(keycode));
+        return false;
+      } else {
+        wait_ms(2);
+        del_mods(QK_MODS_GET_MODS(keycode));
+      }
+    }
+    break;
+    case ST_MACRO_0:
+    if (record->event.pressed) {
+      SEND_STRING(SS_LALT(SS_TAP(X_KP_2) SS_TAP(X_KP_4) SS_TAP(X_KP_7) ));
+    }
+    break;
+    case ST_MACRO_1:
+    if (record->event.pressed) {
+      SEND_STRING(SS_LALT(SS_TAP(X_KP_1) SS_TAP(X_KP_4) SS_TAP(X_KP_5) ));
+    }
+    break;
+    case ST_MACRO_2:
+    if (record->event.pressed) {
+      SEND_STRING(SS_LALT(SS_TAP(X_KP_1) SS_TAP(X_KP_4) SS_TAP(X_KP_6) ));
+    }
+    break;
+    case ST_MACRO_3:
+    if (record->event.pressed) {
+      SEND_STRING(SS_LALT(SS_TAP(X_KP_0) SS_TAP(X_KP_1) SS_TAP(X_KP_5) SS_TAP(X_KP_1) ));
+    }
+    break;
+    case ST_MACRO_4:
+    if (record->event.pressed) {
+      SEND_STRING(SS_LALT(SS_TAP(X_KP_2) SS_TAP(X_KP_4) SS_TAP(X_KP_0) ));
+    }
+    break;
+    case ST_MACRO_5:
+    if (record->event.pressed) {
+      SEND_STRING(SS_LALT(SS_TAP(X_KP_0) SS_TAP(X_KP_1) SS_TAP(X_KP_7) SS_TAP(X_KP_8) ));
+    }
+    break;
+    case ST_MACRO_6:
+    if (record->event.pressed) {
+      SEND_STRING(SS_LALT(SS_TAP(X_KP_2) SS_TAP(X_KP_4) ));
+    }
+    break;
+    case ST_MACRO_7:
+    if (record->event.pressed) {
+      SEND_STRING(SS_LALT(SS_TAP(X_KP_0) SS_TAP(X_KP_1) SS_TAP(X_KP_7) SS_TAP(X_KP_9) ));
+    }
+    break;
+    case ST_MACRO_8:
+    if (record->event.pressed) {
+      SEND_STRING(SS_LALT(SS_TAP(X_KP_2) SS_TAP(X_KP_4) SS_TAP(X_KP_1) ));
+    }
+    break;
+    case ST_MACRO_9:
+    if (record->event.pressed) {
+      SEND_STRING(SS_LALT(SS_TAP(X_KP_2) SS_TAP(X_KP_6) ));
+    }
+    break;
+    case ST_MACRO_10:
+    if (record->event.pressed) {
+      SEND_STRING(SS_LALT(SS_TAP(X_KP_2) SS_TAP(X_KP_5) ));
+    }
+    break;
+    case ST_MACRO_11:
+    if (record->event.pressed) {
+      SEND_STRING(SS_LALT(SS_TAP(X_KP_2) SS_TAP(X_KP_7) ));
+    }
+    break;
+    case ST_MACRO_12:
+    if (record->event.pressed) {
+      SEND_STRING(SS_LALT(SS_TAP(X_KP_0) SS_TAP(X_KP_1) SS_TAP(X_KP_5) SS_TAP(X_KP_6) ));
+    }
+    break;
+    case ST_MACRO_13:
+    if (record->event.pressed) {
+      SEND_STRING(SS_LALT(SS_TAP(X_KP_0) SS_TAP(X_KP_1) SS_TAP(X_KP_6) SS_TAP(X_KP_3) ));
+    }
+    break;
+    case ST_MACRO_14:
+    if (record->event.pressed) {
+      SEND_STRING(SS_LALT(SS_TAP(X_KP_0) SS_TAP(X_KP_1) SS_TAP(X_KP_4) SS_TAP(X_KP_0) ));
+    }
+    break;
+
+    case DUAL_FUNC_0:
+      if (record->tap.count > 0) {
+        if (record->event.pressed) {
+          register_code16(ES_CCED);
+        } else {
+          unregister_code16(ES_CCED);
+        }
+      } else {
+        if (record->event.pressed) {
+          register_code16(LSFT(ES_CCED));
+        } else {
+          unregister_code16(LSFT(ES_CCED));
+        }  
+      }  
+      return false;
+  }
+  return true;
+}

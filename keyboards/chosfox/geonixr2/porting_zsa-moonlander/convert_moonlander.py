@@ -3,7 +3,7 @@
 convert_moonlander.py
 Porta el keymap ZSA Moonlander al Chosfox Geonix R2.
 
-Estado actual: Fase 2 — todas las capas, keycodes extendidos.
+Estado actual: Fase 3 -- Tap Dance, macros ST_MACRO_*, DUAL_FUNC.
 """
 
 import re
@@ -22,7 +22,7 @@ PATH_TARGET  = os.path.join(BASE_DIR, "../keymaps/zsa-moonlander")
 
 # ==============================================================================
 # ORDEN DE TECLAS EN EL LAYOUT MOONLANDER
-# Cada ID identifica una posición física: L=izquierda, R=derecha, fila+columna.
+# Cada ID identifica una posicion fisica: L=izquierda, R=derecha, fila+columna.
 # ==============================================================================
 MOON_ORDER = [
     "L00","L01","L02","L03","L04","L05","L06", "R00","R01","R02","R03","R04","R05","R06",
@@ -34,12 +34,9 @@ MOON_ORDER = [
 ]
 
 # ==============================================================================
-# FASE 1: FILTRO DE KEYCODES BÁSICOS
-# Solo se permiten keycodes de la forma KC_XXX sin argumentos.
-# Todo lo demás se sustituye por KC_TRNS y se emite un warning.
+# FASE 1: FILTRO DE KEYCODES BASICOS (mantenido por referencia interna)
 # ==============================================================================
 def is_basic_keycode(keycode: str) -> bool:
-    """Devuelve True si el keycode es un KC_* simple sin paréntesis."""
     return bool(re.match(r'^KC_[A-Z0-9_]+$', keycode))
 
 
@@ -65,8 +62,6 @@ def parse_moonlander_layers(content: str) -> dict:
                 if depth == 0:
                     end = i
                     break
-
-        # Tokenizar respetando paréntesis anidados
         keys = []
         depth = 0
         current = ""
@@ -85,26 +80,118 @@ def parse_moonlander_layers(content: str) -> dict:
         token = re.sub(r'//.*', '', current).strip()
         if token:
             keys.append(token)
-
         layer_data = {}
         for idx, key in enumerate(keys):
             if idx < len(MOON_ORDER):
                 layer_data[MOON_ORDER[idx]] = key
         layers[layer_num] = layer_data
-
     return layers
 
 
 # ==============================================================================
-# FASE 2: RESOLVER DE KEYCODES EXTENDIDOS
-# Enfoque blocklist: todo pasa salvo patrones ZSA-exclusivos o de fases futuras.
-# Keycodes no soportados -> KC_TRNS + warning en consola.
+# PARSEO DE BLOQUES ESPECIALES DEL FUENTE MOONLANDER
 # ==============================================================================
-_BLOCKED_PHASE2 = [
-    # Fase 3: Tap Dance y macros de string
-    re.compile(r'^TD\('),
-    re.compile(r'^ST_MACRO_\d+$'),
-    re.compile(r'^DUAL_FUNC_\d+$'),
+def _extract_block(content: str, open_pos: int) -> str:
+    """Extrae el bloque delimitado por llaves comenzando en open_pos ('{')."""
+    depth = 1
+    i = open_pos + 1
+    while i < len(content) and depth > 0:
+        if content[i] == '{':
+            depth += 1
+        elif content[i] == '}':
+            depth -= 1
+        i += 1
+    return content[open_pos:i]
+
+
+def parse_tap_dance_enum(content: str) -> str:
+    """Extrae 'enum tap_dance_codes { ... };' del fuente."""
+    m = re.search(r'enum tap_dance_codes\s*\{([^}]*)\}', content)
+    if not m:
+        return ""
+    return m.group(0) + ";"
+
+
+def parse_dual_func_defines(content: str) -> list:
+    """Extrae todos los #define DUAL_FUNC_* del fuente."""
+    return re.findall(r'#define\s+DUAL_FUNC_\d+\s+[^\n]+', content)
+
+
+def build_custom_keycodes_enum(content: str) -> str:
+    """
+    Construye enum custom_keycodes con solo los ST_MACRO_* del fuente.
+    Arranca con SAFE_RANGE (no con ZSA_SAFE_RANGE).
+    """
+    m = re.search(r'enum custom_keycodes\s*\{([^}]*)\}', content)
+    if not m:
+        return ""
+    macros = re.findall(r'ST_MACRO_\d+', m.group(1))
+    if not macros:
+        return ""
+    entries = [f"    {macros[0]} = SAFE_RANGE,"]
+    entries += [f"    {x}," for x in macros[1:]]
+    return "enum custom_keycodes {\n" + "\n".join(entries) + "\n};"
+
+
+def parse_tap_dance_block(content: str) -> str:
+    """
+    Extrae el bloque de Tap Dance desde 'typedef struct { bool is_press_action'
+    hasta el cierre de 'tap_dance_action_t tap_dance_actions[]'.
+    """
+    start_m = re.search(r'typedef struct \{\s*\n\s*bool is_press_action', content)
+    if not start_m:
+        return ""
+    end_m = re.search(r'tap_dance_action_t tap_dance_actions\[\]\s*=\s*\{', content)
+    if not end_m:
+        return ""
+    brace_pos = end_m.end() - 1
+    block_end = content.index('};', brace_pos) + 2
+    return content[start_m.start():block_end]
+
+
+def parse_process_record_user(content: str) -> str:
+    """
+    Extrae process_record_user del fuente y lo sanitiza para Fase 3.
+    Estrategia: copia todo hasta llegar a 'case RGB_SLD:' o 'case HSV_',
+    luego cierra el switch y la funcion limpiamente.
+    """
+    m = re.search(r'bool process_record_user\s*\(', content)
+    if not m:
+        return ""
+
+    # Find function start
+    brace_pos = content.index('{', m.end())
+    func_start = content[m.start():brace_pos + 1]
+
+    # Extract inner body up to the first RGB/ZSA case
+    inner_start = brace_pos + 1
+    # Find where RGB cases begin (these are always last in the switch)
+    rgb_case = re.search(r'\n\s*case RGB_SLD:', content[inner_start:])
+    hsv_case = re.search(r'\n\s*case HSV_\d+', content[inner_start:])
+
+    cut_points = []
+    if rgb_case:
+        cut_points.append(rgb_case.start())
+    if hsv_case:
+        cut_points.append(hsv_case.start())
+
+    if cut_points:
+        cut = min(cut_points)
+        inner = content[inner_start: inner_start + cut]
+    else:
+        # No RGB cases found: use full function
+        end_m = re.search(r'\n\s*return true;\s*\n\}', content[inner_start:])
+        inner = content[inner_start: inner_start + end_m.end()] if end_m else ""
+
+    # Rebuild function: signature + filtered inner + clean closing
+    return func_start.strip() + "\n" + inner.rstrip() + "\n  }\n  return true;\n}"
+
+
+# ==============================================================================
+# FASE 3: RESOLVER DE KEYCODES
+# Igual que Fase 2 pero TD(), ST_MACRO_* y DUAL_FUNC_* ya son validos.
+# ==============================================================================
+_BLOCKED_PHASE3 = [
     # Fase 5: RGB ZSA-exclusivo
     re.compile(r'^RGB_SLD$'),
     re.compile(r'^HSV_\d+_\d+_\d+$'),
@@ -121,7 +208,7 @@ _KEYCODE_TRANSLATIONS = {
     "KC_MS_UP":    "MS_UP",
     "KC_MS_DOWN":  "MS_DOWN",
     "KC_MS_LEFT":  "MS_LEFT",
-    "KC_MS_RIGHT": "MS_RGHT",    # Ojo: RGHT, no RIGHT
+    "KC_MS_RIGHT": "MS_RGHT",
     # Mouse buttons (KC_MS_BTN* -> MS_BTN*)
     "KC_MS_BTN1": "MS_BTN1",
     "KC_MS_BTN2": "MS_BTN2",
@@ -152,111 +239,73 @@ _KEYCODE_TRANSLATIONS = {
 }
 
 def translate_keycode(keycode: str) -> str:
-    """
-    Traduce keycodes renombrados entre versiones de QMK.
-    Para keycodes compuestos (ej. LSFT(KC_MS_BTN1)) aplica la traduccion
-    sobre el contenido interno si el keycode completo no esta en la tabla.
-    """
-    # Traduccion directa (keycode simple)
     if keycode in _KEYCODE_TRANSLATIONS:
         return _KEYCODE_TRANSLATIONS[keycode]
-    # Para keycodes compuestos, sustituir ocurrencias internas
     result = keycode
     for old, new in _KEYCODE_TRANSLATIONS.items():
         result = result.replace(old, new)
     return result
 
 
-def resolve_keycode_phase2(moon_id: str, layer_data: dict, warnings: list) -> str:
+def resolve_keycode_phase3(moon_id: str, layer_data: dict, warnings: list) -> str:
     """
-    Fase 2: acepta todos los keycodes QMK estandar y de i18n (ES_*).
-    Bloquea solo patrones de fases futuras o ZSA-exclusivos.
-    Traduce keycodes renombrados en versiones modernas de QMK.
+    Fase 3: igual que Fase 2 mas TD(), ST_MACRO_* y DUAL_FUNC_* son validos.
     """
     if not moon_id:
         return "KC_TRNS"
-
     keycode = layer_data.get(moon_id, "KC_TRNS")
     if not keycode:
         return "KC_TRNS"
-
-    for pattern in _BLOCKED_PHASE2:
+    for pattern in _BLOCKED_PHASE3:
         if pattern.search(keycode):
-            warnings.append(f"    {moon_id:5s}: '{keycode}' -> KC_TRNS  (no soportado en Fase 2)")
+            warnings.append(f"    {moon_id:5s}: '{keycode}' -> KC_TRNS  (no soportado en Fase 3)")
             return "KC_TRNS"
-
     return translate_keycode(keycode)
 
 
+# ==============================================================================
+# CONSTRUCCION DEL LAYOUT GEONIX
+# ==============================================================================
 def build_layout_block(layer_num: int, layer_data: dict, geonix_mapping: list,
                        invert: bool, resolver, warnings: list) -> str:
-    """
-    Construye el bloque [N] = LAYOUT_tkl_ansi(...) para el Geonix R2.
-
-    Reglas del mapping.json:
-    - El grid es de 4×12 (48 celdas).
-    - Primero se aplica invert_layout si es True (inversión de filas y columnas).
-    - Después se ignora SIEMPRE la celda [fila=3][col=6] (hueco de la barra 2U).
-    - Resultado: exactamente 47 keycodes para LAYOUT_tkl_ansi.
-    """
     grid = [row[:] for row in geonix_mapping]
     if invert:
         grid = [row[::-1] for row in grid[::-1]]
-
     all_keys = []
     for r_idx, row in enumerate(grid):
         for c_idx, moon_id in enumerate(row):
             if r_idx == 3 and c_idx == 6:
-                continue  # hueco barra espaciadora 2U — siempre ignorado
+                continue
             all_keys.append(resolver(moon_id, layer_data, warnings))
-
     assert len(all_keys) == 47, \
-        f"[BUG] Capa {layer_num}: {len(all_keys)} keycodes generados, se esperan exactamente 47"
-
+        f"[BUG] Capa {layer_num}: {len(all_keys)} keycodes, se esperan 47"
     return _format_layout_block(layer_num, all_keys)
 
 
 def _format_layout_block(layer_num: int, keys: list) -> str:
-    """
-    Formatea 47 keycodes con columnas alineadas, estilo default/keymap.c.
-
-    Filas:  Row 0 = keys[0..11]   (12 teclas)
-            Row 1 = keys[12..23]  (12 teclas)
-            Row 2 = keys[24..35]  (12 teclas)
-            Row 3 = keys[36..46]  (11 teclas + gap visual donde iria col 5)
-
-    Alineacion por columnas visuales 0-11:
-      Cols 0-4  -> presentes en las 4 filas
-      Col 5     -> solo filas 0-2 (fila 3 tiene gap de barra 2U)
-      Cols 6-11 -> filas 0-2 usan idx c; fila 3 usa idx c-1 (desplazado por el gap)
-    """
-    row0 = keys[0:12]
-    row1 = keys[12:24]
-    row2 = keys[24:36]
-    row3 = keys[36:47]  # 11 teclas
+    row0, row1, row2, row3 = keys[0:12], keys[12:24], keys[24:36], keys[36:47]
 
     def col_w(c):
         if c <= 4:
             return max(len(row0[c]), len(row1[c]), len(row2[c]), len(row3[c]))
         elif c == 5:
             return max(len(row0[5]), len(row1[5]), len(row2[5]))
-        else:  # 6-11: row3 tiene offset -1 respecto al indice visual
+        else:
             return max(len(row0[c]), len(row1[c]), len(row2[c]), len(row3[c - 1]))
 
     w = [col_w(c) for c in range(12)]
     IND = "        "
 
     def fmt_full_row(row, trailing):
-        # (key + ",").ljust(w+2): coma pegada al keycode, espacios detras
         parts = [(k + ",").ljust(w[c] + 2) for c, k in enumerate(row[:11])]
-        parts.append(row[11] + trailing)   # ultima columna: sin padding
+        parts.append(row[11] + trailing)
         return IND + "".join(parts)
 
     def fmt_bottom_row(row):
         parts  = [(k + ",").ljust(w[c] + 2) for c, k in enumerate(row[:5])]
-        parts += [" " * (w[5] + 2)]                      # gap barra 2U
+        parts += [" " * (w[5] + 2)]
         parts += [(k + ",").ljust(w[6 + i] + 2) for i, k in enumerate(row[5:10])]
-        parts += [row[10]]                               # ultima sin coma
+        parts += [row[10]]
         return IND + "".join(parts)
 
     return "\n".join([
@@ -270,14 +319,20 @@ def _format_layout_block(layer_num: int, keys: list) -> str:
 
 
 # ==============================================================================
-# GENERACIÓN DE ARCHIVOS DE SALIDA
+# GENERACION DE ARCHIVOS DE SALIDA
 # ==============================================================================
-def generate_keymap_c(layer_blocks: list) -> str:
-    lines = [
+def generate_keymap_c(layer_blocks: list, pre_blocks: list, post_blocks: list) -> str:
+    parts = [
         "#include QMK_KEYBOARD_H",
         '#include "rdmctmzt_common.h"',
         '#include "i18n.h"',
         "",
+    ]
+    for block in pre_blocks:
+        if block:
+            parts.append(block)
+            parts.append("")
+    parts += [
         "// clang-format off",
         "const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {",
         ",\n".join(layer_blocks),
@@ -285,33 +340,36 @@ def generate_keymap_c(layer_blocks: list) -> str:
         "// clang-format on",
         "",
     ]
-    return "\n".join(lines)
+    for block in post_blocks:
+        if block:
+            parts.append(block)
+            parts.append("")
+    return "\n".join(parts)
 
 
 def generate_rules_mk() -> str:
     return (
         "# Generado automaticamente por convert_moonlander.py\n"
-        "# Fase 2: todas las capas, keycodes extendidos\n"
+        "# Fase 3: Tap Dance + macros ST_MACRO_* + DUAL_FUNC\n"
         "\n"
         "# DYNAMIC_KEYMAP_ENABLE debe quedar en yes: el rules.mk del teclado\n"
         "# incluye quantum/dynamic_keymap.c incondicionalmente y necesita esta flag.\n"
         "DYNAMIC_KEYMAP_ENABLE = yes\n"
         "\n"
-        "# VIA desactivado (no se usa en este keymap)\n"
         "VIA_ENABLE            = no\n"
         "\n"
-        "TAP_DANCE_ENABLE      = no\n"
+        "TAP_DANCE_ENABLE      = yes\n"
         "MOUSEKEY_ENABLE       = yes\n"
         "EXTRAKEY_ENABLE       = yes\n"
     )
 
 
 def generate_config_h() -> str:
-    return "// Keymap config — generado por convert_moonlander.py (Fase 2)\n"
+    return "// Keymap config -- generado por convert_moonlander.py (Fase 3)\n"
 
 
 def generate_version_h() -> str:
-    return '#define QMK_VERSION "ems107-port-phase2"\n'
+    return '#define QMK_VERSION "ems107-port-phase3"\n'
 
 
 # ==============================================================================
@@ -319,59 +377,77 @@ def generate_version_h() -> str:
 # ==============================================================================
 def run():
     print("\n" + "=" * 60)
-    print("  convert_moonlander.py — Fase 2")
-    print("  Todas las capas · keycodes extendidos")
+    print("  convert_moonlander.py -- Fase 3")
+    print("  Todas las capas + Tap Dance + macros ST_MACRO_*")
     print("=" * 60 + "\n")
 
-    # Validaciones
     for path, label in [(PATH_SOURCE, "keymap.c fuente"), (PATH_MAPPING, "mapping.json")]:
         if not os.path.exists(path):
             print(f"[ERROR] No se encuentra {label}: {path}")
             return False
 
-    # Limpiar y crear directorio destino
     if os.path.exists(PATH_TARGET):
         print(f"[INFO] Limpiando: {PATH_TARGET}")
         shutil.rmtree(PATH_TARGET)
     os.makedirs(PATH_TARGET)
 
-    # Cargar mapping
     with open(PATH_MAPPING, "r", encoding="utf-8") as f:
         mapping_data = json.load(f)
     geonix_mapping = mapping_data["geonix_layout"]
     invert_layout  = mapping_data.get("invert_layout", False)
     print(f"[INFO] mapping.json: grid {len(geonix_mapping)}x{len(geonix_mapping[0])}, invert={invert_layout}")
 
-    # Parsear capas Moonlander
     with open(PATH_SOURCE, "r", encoding="utf-8") as f:
         content = f.read()
+
     moon_layers = parse_moonlander_layers(content)
-    print(f"[INFO] Capas encontradas en fuente Moonlander: {sorted(moon_layers.keys())}")
+    print(f"[INFO] Capas encontradas: {sorted(moon_layers.keys())}")
 
     if 0 not in moon_layers:
-        print("[ERROR] No se encontro la capa 0 en el keymap Moonlander fuente.")
+        print("[ERROR] No se encontro la capa 0.")
         return False
 
-    # --- Fase 2: generar TODAS las capas ---
+    # --- Generar todas las capas con resolver Fase 3 ---
     warnings = []
     layer_blocks = []
     for layer_num in sorted(moon_layers.keys()):
         block = build_layout_block(layer_num, moon_layers[layer_num], geonix_mapping,
-                                   invert_layout, resolve_keycode_phase2, warnings)
+                                   invert_layout, resolve_keycode_phase3, warnings)
         layer_blocks.append(block)
     print(f"[INFO] Capas generadas: {sorted(moon_layers.keys())}")
 
+    # --- Extraer bloques del fuente Moonlander ---
+    custom_enum  = build_custom_keycodes_enum(content)
+    td_enum      = parse_tap_dance_enum(content)
+    dual_defines = parse_dual_func_defines(content)
+    td_block     = parse_tap_dance_block(content)
+    proc_record  = parse_process_record_user(content)
+
+    for name, val in [("custom_keycodes enum", custom_enum),
+                      ("tap_dance_codes enum", td_enum),
+                      ("tap dance block",      td_block),
+                      ("process_record_user",  proc_record)]:
+        status = "OK" if val else "WARN: no encontrado"
+        print(f"[{status}] {name}")
+    for d in dual_defines:
+        print(f"[INFO] Define extraido: {d}")
+
     if warnings:
-        # Agrupar warnings por keycode para no repetir
         unique = sorted(set(warnings))
-        print(f"\n[WARN] {len(unique)} sustitucion(es) -> KC_TRNS (keycodes de fases futuras):")
+        print(f"\n[WARN] {len(unique)} sustitucion(es) -> KC_TRNS (Fase 5):")
         for w in unique:
             print(w)
 
-    # Escribir archivos
+    # Bloques que van ANTES de los keymaps
+    pre_blocks = [custom_enum, td_enum] + dual_defines
+
+    # Bloques que van DESPUES de los keymaps
+    post_blocks = [td_block, proc_record]
+
     print()
+    keymap_c = generate_keymap_c(layer_blocks, pre_blocks, post_blocks)
     files = {
-        "keymap.c":  generate_keymap_c(layer_blocks),
+        "keymap.c":  keymap_c,
         "rules.mk":  generate_rules_mk(),
         "config.h":  generate_config_h(),
         "version.h": generate_version_h(),
@@ -382,12 +458,11 @@ def run():
             f.write(content_out)
         print(f"[OK] {filename}")
 
-    # Copiar i18n.h del fuente Moonlander
     shutil.copy2(os.path.join(PATH_REF_DIR, "i18n.h"), PATH_TARGET)
     print("[OK] i18n.h")
 
     print(f"\n{'=' * 60}")
-    print(f"  Fase 2 completada -> {os.path.normpath(PATH_TARGET)}")
+    print(f"  Fase 3 completada -> {os.path.normpath(PATH_TARGET)}")
     print(f"{'=' * 60}")
     print("\nPara compilar (PowerShell):")
     print('  $env:MSYSTEM="MINGW64"; $env:CHERE_INVOKING="1"')
