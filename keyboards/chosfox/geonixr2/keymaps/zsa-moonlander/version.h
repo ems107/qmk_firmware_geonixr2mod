@@ -1,1 +1,1 @@
-#define QMK_VERSION "ems107-port-phase5"
+#define QMK_VERSION "ems107-geonixr2-port"

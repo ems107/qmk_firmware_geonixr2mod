@@ -1,7 +1,6 @@
 # Generado automaticamente por convert_moonlander.py
-# Fase 5: RGB adaptado + ledmap por capas
 
-# DYNAMIC_KEYMAP_ENABLE debe quedar en yes: el rules.mk del teclado
+# DYNAMIC_KEYMAP_ENABLE requerido: el rules.mk del teclado
 # incluye quantum/dynamic_keymap.c incondicionalmente.
 DYNAMIC_KEYMAP_ENABLE = yes
 

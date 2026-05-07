@@ -3,7 +3,8 @@
 convert_moonlander.py
 Porta el keymap ZSA Moonlander al Chosfox Geonix R2.
 
-Estado actual: Fase 5 -- Adaptacion RGB (ledmap + indicadores por capa).
+Genera el keymap completo: capas, Tap Dance, macros, config y RGB.
+Usa mapping.json para controlar el mapeo de posiciones y los overrides.
 """
 
 import re
@@ -33,11 +34,6 @@ MOON_ORDER = [
     "L50","L51","L52",                          "R50","R51","R52",
 ]
 
-# ==============================================================================
-# FASE 1: FILTRO DE KEYCODES BASICOS (mantenido por referencia interna)
-# ==============================================================================
-def is_basic_keycode(keycode: str) -> bool:
-    return bool(re.match(r'^KC_[A-Z0-9_]+$', keycode))
 
 
 # ==============================================================================
@@ -89,21 +85,21 @@ def parse_moonlander_layers(content: str) -> dict:
 
 
 # ==============================================================================
-# FASE 4: PARSEO DE config.h DEL FUENTE MOONLANDER
-# Extrae defines de timing y comportamiento seguros para el Geonix R2.
-# Descarta defines ZSA-exclusivos o de Fase 5 (RGB).
+# PARSEO DE config.h DEL FUENTE MOONLANDER
+# Extrae defines de timing/comportamiento validos para el Geonix R2.
+# Descarta defines ZSA-exclusivos y parametros de inicio de RGB.
 # ==============================================================================
 
 # Defines que se omiten aunque aparezcan en el config.h fuente:
 _CONFIG_BLOCKLIST = {
-    "SERIAL_NUMBER",        # identificador unico ZSA, no aplica
-    "RGB_MATRIX_STARTUP_SPD", # Fase 5
+    "SERIAL_NUMBER",          # identificador unico ZSA, no aplica al Geonix
+    "RGB_MATRIX_STARTUP_SPD", # parametros de inicio RGB, gestionados por el teclado
     "RGB_MATRIX_STARTUP_MODE",
     "RGB_MATRIX_STARTUP_HUE",
     "RGB_MATRIX_STARTUP_SAT",
     "RGB_MATRIX_STARTUP_VAL",
-    "ORYX_CONFIGURATOR",    # ZSA-specific
-    "FIRMWARE_VERSION",     # ZSA-specific
+    "ORYX_CONFIGURATOR",      # ZSA-exclusivo
+    "FIRMWARE_VERSION",       # ZSA-exclusivo
 }
 
 def parse_ref_config_h(ref_dir: str) -> str:
@@ -197,9 +193,9 @@ def parse_tap_dance_block(content: str) -> str:
 
 def parse_process_record_user(content: str) -> str:
     """
-    Extrae process_record_user del fuente y lo sanitiza para Fase 3.
-    Estrategia: copia todo hasta llegar a 'case RGB_SLD:' o 'case HSV_',
-    luego cierra el switch y la funcion limpiamente.
+    Extrae process_record_user del fuente Moonlander y lo sanitiza.
+    Copia el cuerpo hasta los casos RGB_SLD/HSV_* (ZSA-exclusivos)
+    y cierra el switch limpiamente en ese punto.
     """
     m = re.search(r'bool process_record_user\s*\(', content)
     if not m:
@@ -234,9 +230,9 @@ def parse_process_record_user(content: str) -> str:
 
 
 # ==============================================================================
-# RESOLVER DE KEYCODES (Fase 5: lista final)
-# RGB_SLD / HSV_* / TOGGLE_LAYER_COLOR son keycodes custom ZSA sin equivalente
-# en el Geonix. Se mantienen como KC_TRNS en el layout.
+# RESOLVER DE KEYCODES
+# Keycodes ZSA-exclusivos (RGB_SLD, HSV_*, TOGGLE_LAYER_COLOR, audio) no tienen
+# equivalente en el Geonix y se sustituyen por KC_NO (tecla muerta).
 # ==============================================================================
 _BLOCKED = [
     re.compile(r'^RGB_SLD$'),
@@ -310,9 +306,9 @@ def resolve_keycode_phase3(moon_id: str, layer_data: dict, warnings: list) -> st
 
 
 # ==============================================================================
-# FASE 5: ADAPTACION RGB
-# El Moonlander tiene 72 LEDs. El Geonix R2 tiene 47.
-# Mapeamos las posiciones usando el mismo mapping.json.
+# ADAPTACION RGB
+# El Moonlander tiene 72 LEDs; el Geonix R2 tiene 47.
+# Se remapean las posiciones del ledmap usando el mismo mapping.json.
 # ==============================================================================
 
 def build_led_mapping(geonix_mapping: list, invert: bool) -> list:
@@ -578,9 +574,8 @@ def generate_keymap_c(layer_blocks: list, pre_blocks: list, post_blocks: list) -
 def generate_rules_mk() -> str:
     return (
         "# Generado automaticamente por convert_moonlander.py\n"
-        "# Fase 5: RGB adaptado + ledmap por capas\n"
         "\n"
-        "# DYNAMIC_KEYMAP_ENABLE debe quedar en yes: el rules.mk del teclado\n"
+        "# DYNAMIC_KEYMAP_ENABLE requerido: el rules.mk del teclado\n"
         "# incluye quantum/dynamic_keymap.c incondicionalmente.\n"
         "DYNAMIC_KEYMAP_ENABLE = yes\n"
         "\n"
@@ -595,7 +590,7 @@ def generate_rules_mk() -> str:
 
 def generate_config_h(ported_defines: str) -> str:
     lines = [
-        "// Keymap config -- generado por convert_moonlander.py (Fase 5)",
+        "// Keymap config -- generado por convert_moonlander.py",
         "// Defines portados del config.h Moonlander (ZSA-exclusivos omitidos).",
         "",
     ]
@@ -605,7 +600,7 @@ def generate_config_h(ported_defines: str) -> str:
 
 
 def generate_version_h() -> str:
-    return '#define QMK_VERSION "ems107-port-phase5"\n'
+    return '#define QMK_VERSION "ems107-geonixr2-port"\n'
 
 
 # ==============================================================================
@@ -613,8 +608,8 @@ def generate_version_h() -> str:
 # ==============================================================================
 def run():
     print("\n" + "=" * 60)
-    print("  convert_moonlander.py -- Fase 5")
-    print("  RGB adaptado: ledmap + indicadores por capa")
+    print("  convert_moonlander.py")
+    print("  Moonlander -> Geonix R2 keymap converter")
     print("=" * 60 + "\n")
 
     for path, label in [(PATH_SOURCE, "keymap.c fuente"), (PATH_MAPPING, "mapping.json")]:
@@ -643,12 +638,8 @@ def run():
         print("[ERROR] No se encontro la capa 0.")
         return False
 
-    # --- Generar todas las capas con resolver Fase 3 ---
-    warnings = []
-    layer_blocks = []
-    overrides = mapping_data.get("overrides", {})
-
-    warnings = []
+    overrides    = mapping_data.get("overrides", {})
+    warnings     = []
     layer_blocks = []
     total_patched = 0
     for layer_num in sorted(moon_layers.keys()):
@@ -673,7 +664,7 @@ def run():
     td_block     = parse_tap_dance_block(content)
     proc_record  = parse_process_record_user(content)
 
-    # --- Fase 4: extraer defines del config.h fuente ---
+    # --- Extraer defines del config.h fuente ---
     ported_defines = parse_ref_config_h(PATH_REF_DIR)
     if ported_defines:
         print(f"[OK] config.h defines portados:")
@@ -693,11 +684,11 @@ def run():
 
     if warnings:
         unique = sorted(set(warnings))
-        print(f"\n[WARN] {len(unique)} keycode(s) ZSA sin equivalente -> KC_TRNS:")
+        print(f"\n[WARN] {len(unique)} keycode(s) ZSA sin equivalente -> KC_NO:")
         for w in unique:
             print(w)
 
-    # --- Fase 5: RGB ---
+    # --- RGB: ledmap + indicadores por capa ---
     led_mapping = build_led_mapping(geonix_mapping, invert_layout)
     ledmap_str, adapted_layers = parse_and_adapt_ledmap(content, led_mapping)
     rgb_block = build_rgb_post_block(content, adapted_layers) if adapted_layers else ""
@@ -730,7 +721,7 @@ def run():
     print("[OK] i18n.h")
 
     print(f"\n{'=' * 60}")
-    print(f"  Fase 5 completada -> {os.path.normpath(PATH_TARGET)}")
+    print(f"  Completado -> {os.path.normpath(PATH_TARGET)}")
     print(f"{'=' * 60}")
     print("\nPara compilar (PowerShell):")
     print('  $env:MSYSTEM="MINGW64"; $env:CHERE_INVOKING="1"')
