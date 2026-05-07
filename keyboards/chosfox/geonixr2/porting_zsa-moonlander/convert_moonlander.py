@@ -642,20 +642,35 @@ def run():
     warnings     = []
     layer_blocks = []
     total_patched = 0
-    for layer_num in sorted(moon_layers.keys()):
-        keycodes = build_keycodes(layer_num, moon_layers[layer_num], geonix_mapping,
-                                  invert_layout, resolve_keycode_phase3, warnings)
+
+    # Capas a generar: union de las del Moonlander y las que solo existen en overrides
+    override_only = {int(k) for k in overrides if int(k) not in moon_layers}
+    all_layer_nums = sorted(set(moon_layers.keys()) | override_only)
+
+    for layer_num in all_layer_nums:
+        if layer_num in moon_layers:
+            keycodes = build_keycodes(layer_num, moon_layers[layer_num], geonix_mapping,
+                                      invert_layout, resolve_keycode_phase3, warnings)
+        else:
+            # Capa solo definida en overrides: base completamente transparente
+            keycodes = ["KC_TRNS"] * 47
+
         override_key = str(layer_num)
         if override_key in overrides:
             keycodes, patch_count = apply_override_patch(keycodes, overrides[override_key], invert_layout)
             if patch_count > 0:
-                print(f"[INFO] Override capa {layer_num}: {patch_count} posicion(es) parchada(s)")
                 total_patched += patch_count
+            if layer_num in override_only:
+                print(f"[INFO] Capa {layer_num}: generada solo desde override ({patch_count} posicion(es) definidas, resto KC_TRNS)")
+            elif patch_count > 0:
+                print(f"[INFO] Override capa {layer_num}: {patch_count} posicion(es) parchada(s)")
+
         block = _format_layout_block(layer_num, keycodes)
         layer_blocks.append(block)
+
     if total_patched:
         print(f"[INFO] Total overrides aplicados: {total_patched} posiciones")
-    print(f"[INFO] Capas generadas: {sorted(moon_layers.keys())}")
+    print(f"[INFO] Capas generadas: {all_layer_nums}")
 
     # --- Extraer bloques del fuente Moonlander ---
     custom_enum  = build_custom_keycodes_enum(content)
