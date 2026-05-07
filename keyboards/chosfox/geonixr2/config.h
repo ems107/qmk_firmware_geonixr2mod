@@ -19,6 +19,8 @@
 
 #pragma once
 
+#define DYNAMIC_KEYMAP_LAYER_COUNT 9
+
 /* Mechanical locking support. Use KC_LCAP, KC_LNUM or KC_LSCR instead in keymap */
 #define LOCKING_SUPPORT_ENABLE
 /* Locking resynchronize hack */
@@ -36,8 +38,10 @@
 #    define NOP_FUDGE 0.4
 #endif
 
-#define DYNAMIC_KEYMAP_EEPROM_MAX_ADDR 1151
-#define EEPROM_SIZE 1152
+// #define DYNAMIC_KEYMAP_EEPROM_MAX_ADDR 1151
+#define DYNAMIC_KEYMAP_EEPROM_MAX_ADDR 3071
+// #define EEPROM_SIZE 1152
+#define EEPROM_SIZE 3072
 #define FEE_PAGE_SIZE (0x200)
 #define FEE_PAGE_COUNT (8)
 #define FEE_PAGE_BASE_ADDRESS (0x1F000)
