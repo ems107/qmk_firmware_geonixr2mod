@@ -304,8 +304,8 @@ def resolve_keycode_phase3(moon_id: str, layer_data: dict, warnings: list) -> st
         return "KC_TRNS"
     for pattern in _BLOCKED:
         if pattern.search(keycode):
-            warnings.append(f"    {moon_id:5s}: '{keycode}' -> KC_TRNS  (keycode ZSA sin equivalente)")
-            return "KC_TRNS"
+            warnings.append(f"    {moon_id:5s}: '{keycode}' -> KC_NO  (keycode ZSA sin equivalente)")
+            return "KC_NO"
     return translate_keycode(keycode)
 
 
