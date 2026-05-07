@@ -144,17 +144,60 @@ def build_layout_block(layer_num: int, layer_data: dict, geonix_mapping: list,
     assert len(all_keys) == 47, \
         f"[BUG] Capa {layer_num}: {len(all_keys)} keycodes generados, se esperan exactamente 47"
 
-    # Formatear en 4 filas: 12, 12, 12, 11
-    row_sizes = [12, 12, 12, 11]
-    formatted_rows = []
-    idx = 0
-    for size in row_sizes:
-        chunk = all_keys[idx:idx + size]
-        formatted_rows.append("        " + ", ".join(chunk))
-        idx += size
+    return _format_layout_block(layer_num, all_keys)
 
-    body = ",\n".join(formatted_rows)
-    return f"    [{layer_num}] = LAYOUT_tkl_ansi(\n{body}\n    )"
+
+def _format_layout_block(layer_num: int, keys: list) -> str:
+    """
+    Formatea 47 keycodes con columnas alineadas, estilo default/keymap.c.
+
+    Filas:  Row 0 = keys[0..11]   (12 teclas)
+            Row 1 = keys[12..23]  (12 teclas)
+            Row 2 = keys[24..35]  (12 teclas)
+            Row 3 = keys[36..46]  (11 teclas + gap visual donde iria col 5)
+
+    Alineacion por columnas visuales 0-11:
+      Cols 0-4  -> presentes en las 4 filas
+      Col 5     -> solo filas 0-2 (fila 3 tiene gap de barra 2U)
+      Cols 6-11 -> filas 0-2 usan idx c; fila 3 usa idx c-1 (desplazado por el gap)
+    """
+    row0 = keys[0:12]
+    row1 = keys[12:24]
+    row2 = keys[24:36]
+    row3 = keys[36:47]  # 11 teclas
+
+    def col_w(c):
+        if c <= 4:
+            return max(len(row0[c]), len(row1[c]), len(row2[c]), len(row3[c]))
+        elif c == 5:
+            return max(len(row0[5]), len(row1[5]), len(row2[5]))
+        else:  # 6-11: row3 tiene offset -1 respecto al indice visual
+            return max(len(row0[c]), len(row1[c]), len(row2[c]), len(row3[c - 1]))
+
+    w = [col_w(c) for c in range(12)]
+    IND = "        "
+
+    def fmt_full_row(row, trailing):
+        # (key + ",").ljust(w+2): coma pegada al keycode, espacios detras
+        parts = [(k + ",").ljust(w[c] + 2) for c, k in enumerate(row[:11])]
+        parts.append(row[11] + trailing)   # ultima columna: sin padding
+        return IND + "".join(parts)
+
+    def fmt_bottom_row(row):
+        parts  = [(k + ",").ljust(w[c] + 2) for c, k in enumerate(row[:5])]
+        parts += [" " * (w[5] + 2)]                      # gap barra 2U
+        parts += [(k + ",").ljust(w[6 + i] + 2) for i, k in enumerate(row[5:10])]
+        parts += [row[10]]                               # ultima sin coma
+        return IND + "".join(parts)
+
+    return "\n".join([
+        f"    [{layer_num}] = LAYOUT_tkl_ansi(",
+        fmt_full_row(row0, ","),
+        fmt_full_row(row1, ","),
+        fmt_full_row(row2, ","),
+        fmt_bottom_row(row3),
+        "    )",
+    ])
 
 
 # ==============================================================================
