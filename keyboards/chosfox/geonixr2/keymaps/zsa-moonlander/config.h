@@ -1,4 +1,4 @@
-// Keymap config -- generado por convert_moonlander.py (Fase 4)
+// Keymap config -- generado por convert_moonlander.py (Fase 5)
 // Defines portados del config.h Moonlander (ZSA-exclusivos omitidos).
 
 #define PERMISSIVE_HOLD

@@ -3,7 +3,7 @@
 convert_moonlander.py
 Porta el keymap ZSA Moonlander al Chosfox Geonix R2.
 
-Estado actual: Fase 4 -- config.h con timings y parametros avanzados.
+Estado actual: Fase 5 -- Adaptacion RGB (ledmap + indicadores por capa).
 """
 
 import re
@@ -234,15 +234,14 @@ def parse_process_record_user(content: str) -> str:
 
 
 # ==============================================================================
-# FASE 3: RESOLVER DE KEYCODES
-# Igual que Fase 2 pero TD(), ST_MACRO_* y DUAL_FUNC_* ya son validos.
+# RESOLVER DE KEYCODES (Fase 5: lista final)
+# RGB_SLD / HSV_* / TOGGLE_LAYER_COLOR son keycodes custom ZSA sin equivalente
+# en el Geonix. Se mantienen como KC_TRNS en el layout.
 # ==============================================================================
-_BLOCKED_PHASE3 = [
-    # Fase 5: RGB ZSA-exclusivo
+_BLOCKED = [
     re.compile(r'^RGB_SLD$'),
     re.compile(r'^HSV_\d+_\d+_\d+$'),
     re.compile(r'^TOGGLE_LAYER_COLOR$'),
-    # Audio (no disponible en este firmware)
     re.compile(r'^AU_TOGG$'),
     re.compile(r'^MU_TOGG$'),
     re.compile(r'^MU_NEXT$'),
@@ -295,18 +294,166 @@ def translate_keycode(keycode: str) -> str:
 
 def resolve_keycode_phase3(moon_id: str, layer_data: dict, warnings: list) -> str:
     """
-    Fase 3: igual que Fase 2 mas TD(), ST_MACRO_* y DUAL_FUNC_* son validos.
+    Resuelve el keycode para una posicion del Geonix.
+    TD(), ST_MACRO_*, DUAL_FUNC_* son validos. RGB ZSA-exclusivos -> KC_TRNS.
     """
     if not moon_id:
         return "KC_TRNS"
     keycode = layer_data.get(moon_id, "KC_TRNS")
     if not keycode:
         return "KC_TRNS"
-    for pattern in _BLOCKED_PHASE3:
+    for pattern in _BLOCKED:
         if pattern.search(keycode):
-            warnings.append(f"    {moon_id:5s}: '{keycode}' -> KC_TRNS  (no soportado en Fase 3)")
+            warnings.append(f"    {moon_id:5s}: '{keycode}' -> KC_TRNS  (keycode ZSA sin equivalente)")
             return "KC_TRNS"
     return translate_keycode(keycode)
+
+
+# ==============================================================================
+# FASE 5: ADAPTACION RGB
+# El Moonlander tiene 72 LEDs. El Geonix R2 tiene 47.
+# Mapeamos las posiciones usando el mismo mapping.json.
+# ==============================================================================
+
+def build_led_mapping(geonix_mapping: list, invert: bool) -> list:
+    """
+    Devuelve lista de 47 elementos (indice LED del Moonlander o None)
+    en el mismo orden de iteracion que build_layout_block.
+    """
+    moon_id_to_led = {mid: idx for idx, mid in enumerate(MOON_ORDER)}
+    grid = [row[:] for row in geonix_mapping]
+    if invert:
+        grid = [row[::-1] for row in grid[::-1]]
+    result = []
+    for r_idx, row in enumerate(grid):
+        for c_idx, moon_id in enumerate(row):
+            if r_idx == 3 and c_idx == 6:
+                continue
+            result.append(moon_id_to_led.get(moon_id))
+    return result
+
+
+def parse_and_adapt_ledmap(content: str, led_mapping: list) -> tuple:
+    """
+    Parsea el ledmap del fuente Moonlander (72 LEDs/capa) y lo adapta
+    a 47 LEDs del Geonix R2 usando el led_mapping.
+    Devuelve (ledmap_c_string, dict_layer_num -> list_of_triplets).
+    """
+    m = re.search(r'const uint8_t PROGMEM ledmap\[\]\[RGB_MATRIX_LED_COUNT\]\[3\]\s*=\s*\{', content)
+    if not m:
+        return "", {}
+
+    # Extraer el bloque completo del ledmap
+    outer = content.index('{', m.start())
+    depth, i = 1, outer + 1
+    while i < len(content) and depth > 0:
+        if content[i] == '{': depth += 1
+        elif content[i] == '}': depth -= 1
+        i += 1
+    ledmap_block = content[outer + 1: i - 1]
+
+    # Parsear cada entrada [N] = { ... }
+    layer_data = {}
+    for lm in re.finditer(r'\[(\d+)\]\s*=\s*\{', ledmap_block):
+        ln = int(lm.group(1))
+        start = lm.end() - 1  # position of '{'
+        depth, j = 1, start + 1
+        while j < len(ledmap_block) and depth > 0:
+            if ledmap_block[j] == '{': depth += 1
+            elif ledmap_block[j] == '}': depth -= 1
+            j += 1
+        inner = ledmap_block[start + 1: j - 1]
+        triplets = re.findall(r'\{(\d+),(\d+),(\d+)\}', inner)
+        layer_data[ln] = [(int(h), int(s), int(v)) for h, s, v in triplets]
+
+    if not layer_data:
+        return "", {}
+
+    # Construir ledmap adaptado (47 LEDs)
+    adapted = {}
+    lines = ["const uint8_t PROGMEM ledmap[][RGB_MATRIX_LED_COUNT][3] = {"]
+    for ln in sorted(layer_data):
+        moon_colors = layer_data[ln]
+        geonix_colors = []
+        for moon_idx in led_mapping:
+            if moon_idx is not None and moon_idx < len(moon_colors):
+                geonix_colors.append(moon_colors[moon_idx])
+            else:
+                geonix_colors.append((0, 0, 0))
+        adapted[ln] = geonix_colors
+        triplet_strs = ", ".join(f"{{{h},{s},{v}}}" for h, s, v in geonix_colors)
+        lines.append(f"    [{ln}] = {{ {triplet_strs} }},")
+    lines.append("};")
+    return "\n".join(lines), adapted
+
+
+def build_rgb_post_block(content: str, adapted_layers: dict) -> str:
+    """
+    Genera el bloque RGB post-keymaps para el Geonix R2:
+    - extern rgb_config_t
+    - hsv_to_rgb_with_value (verbatim)
+    - keyboard_post_init_user (verbatim)
+    - set_layer_color (verbatim)
+    - rgb_matrix_indicators_user (adaptado: sin rawhid_state ni keyboard_config)
+    """
+    parts = []
+
+    # extern + hsv_to_rgb_with_value: copiar verbatim del fuente
+    extern_m = re.search(r'extern rgb_config_t rgb_matrix_config;', content)
+    hsv_fn_m = re.search(r'RGB hsv_to_rgb_with_value\s*\(', content)
+    if extern_m and hsv_fn_m:
+        brace_pos = content.index('{', hsv_fn_m.end())
+        depth, i = 1, brace_pos + 1
+        while i < len(content) and depth > 0:
+            if content[i] == '{': depth += 1
+            elif content[i] == '}': depth -= 1
+            i += 1
+        parts.append(content[extern_m.start():i].strip())
+
+    # keyboard_post_init_user: verbatim
+    kpiu_m = re.search(r'void keyboard_post_init_user\s*\(void\)\s*\{', content)
+    if kpiu_m:
+        brace_pos = kpiu_m.end() - 1
+        depth, i = 1, brace_pos + 1
+        while i < len(content) and depth > 0:
+            if content[i] == '{': depth += 1
+            elif content[i] == '}': depth -= 1
+            i += 1
+        parts.append(content[kpiu_m.start():i].strip())
+
+    # set_layer_color: verbatim
+    slc_m = re.search(r'void set_layer_color\s*\(', content)
+    if slc_m:
+        brace_pos = content.index('{', slc_m.end())
+        depth, i = 1, brace_pos + 1
+        while i < len(content) and depth > 0:
+            if content[i] == '{': depth += 1
+            elif content[i] == '}': depth -= 1
+            i += 1
+        parts.append(content[slc_m.start():i].strip())
+
+    # rgb_matrix_indicators_user: generado sin ZSA-specific checks
+    cases = []
+    for ln in sorted(adapted_layers.keys()):
+        cases.append(f"    case {ln}:")
+        cases.append(f"      set_layer_color({ln});")
+        cases.append(f"      break;")
+    cases_str = "\n".join(cases)
+    rgb_indicators = (
+        "bool rgb_matrix_indicators_user(void) {\n"
+        "  switch (biton32(layer_state)) {\n"
+        + cases_str + "\n"
+        "    default:\n"
+        "      if (rgb_matrix_get_flags() == LED_FLAG_NONE) {\n"
+        "        rgb_matrix_set_color_all(0, 0, 0);\n"
+        "      }\n"
+        "  }\n"
+        "  return true;\n"
+        "}"
+    )
+    parts.append(rgb_indicators)
+
+    return "\n\n".join(parts)
 
 
 # ==============================================================================
@@ -396,7 +543,7 @@ def generate_keymap_c(layer_blocks: list, pre_blocks: list, post_blocks: list) -
 def generate_rules_mk() -> str:
     return (
         "# Generado automaticamente por convert_moonlander.py\n"
-        "# Fase 4: config avanzada + timings portados\n"
+        "# Fase 5: RGB adaptado + ledmap por capas\n"
         "\n"
         "# DYNAMIC_KEYMAP_ENABLE debe quedar en yes: el rules.mk del teclado\n"
         "# incluye quantum/dynamic_keymap.c incondicionalmente.\n"
@@ -413,7 +560,7 @@ def generate_rules_mk() -> str:
 
 def generate_config_h(ported_defines: str) -> str:
     lines = [
-        "// Keymap config -- generado por convert_moonlander.py (Fase 4)",
+        "// Keymap config -- generado por convert_moonlander.py (Fase 5)",
         "// Defines portados del config.h Moonlander (ZSA-exclusivos omitidos).",
         "",
     ]
@@ -423,7 +570,7 @@ def generate_config_h(ported_defines: str) -> str:
 
 
 def generate_version_h() -> str:
-    return '#define QMK_VERSION "ems107-port-phase4"\n'
+    return '#define QMK_VERSION "ems107-port-phase5"\n'
 
 
 # ==============================================================================
@@ -431,8 +578,8 @@ def generate_version_h() -> str:
 # ==============================================================================
 def run():
     print("\n" + "=" * 60)
-    print("  convert_moonlander.py -- Fase 4")
-    print("  Config avanzada: timings y parametros portados")
+    print("  convert_moonlander.py -- Fase 5")
+    print("  RGB adaptado: ledmap + indicadores por capa")
     print("=" * 60 + "\n")
 
     for path, label in [(PATH_SOURCE, "keymap.c fuente"), (PATH_MAPPING, "mapping.json")]:
@@ -497,15 +644,24 @@ def run():
 
     if warnings:
         unique = sorted(set(warnings))
-        print(f"\n[WARN] {len(unique)} sustitucion(es) -> KC_TRNS (Fase 5):")
+        print(f"\n[WARN] {len(unique)} keycode(s) ZSA sin equivalente -> KC_TRNS:")
         for w in unique:
             print(w)
+
+    # --- Fase 5: RGB ---
+    led_mapping = build_led_mapping(geonix_mapping, invert_layout)
+    ledmap_str, adapted_layers = parse_and_adapt_ledmap(content, led_mapping)
+    rgb_block = build_rgb_post_block(content, adapted_layers) if adapted_layers else ""
+    if adapted_layers:
+        print(f"[OK] RGB ledmap adaptado: capas {sorted(adapted_layers.keys())} ({len(led_mapping)} LEDs)")
+    else:
+        print("[INFO] Sin datos RGB en el fuente Moonlander.")
 
     # Bloques que van ANTES de los keymaps
     pre_blocks = [custom_enum, td_enum] + dual_defines
 
-    # Bloques que van DESPUES de los keymaps
-    post_blocks = [td_block, proc_record]
+    # Bloques que van DESPUES de los keymaps (ledmap antes del bloque RGB)
+    post_blocks = [td_block, proc_record, ledmap_str, rgb_block]
 
     print()
     keymap_c = generate_keymap_c(layer_blocks, pre_blocks, post_blocks)
@@ -525,7 +681,7 @@ def run():
     print("[OK] i18n.h")
 
     print(f"\n{'=' * 60}")
-    print(f"  Fase 4 completada -> {os.path.normpath(PATH_TARGET)}")
+    print(f"  Fase 5 completada -> {os.path.normpath(PATH_TARGET)}")
     print(f"{'=' * 60}")
     print("\nPara compilar (PowerShell):")
     print('  $env:MSYSTEM="MINGW64"; $env:CHERE_INVOKING="1"')
