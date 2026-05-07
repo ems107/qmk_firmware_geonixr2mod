@@ -12,7 +12,7 @@
         "",
         "Nota: Los IDs vacíos o desconocidos se convertirán en KC_NO."
     ],
-    "invert_layout": false,
+    "invert_layout": true,
     "geonix_layout": [
         ["L11", "L12", "L13", "L14", "L15",    "",    "", "R11", "R12", "R13", "R14", "R15"],
         ["L21", "L22", "L23", "L24", "L25",    "",    "", "R21", "R22", "R23", "R24", "R25"],
