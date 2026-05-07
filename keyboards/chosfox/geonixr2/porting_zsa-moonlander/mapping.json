@@ -1,0 +1,22 @@
+{
+    "HELP_REFERENCE_MOONLANDER_LAYOUT": [
+        "Use estos IDs en 'geonix_layout' para mapear teclas.",
+        "",
+        "MANO IZQUIERDA (Left)                          MANO DERECHA (Right)",
+        "F0: L00 L01 L02 L03 L04 L05 L06 | R00 R01 R02 R03 R04 R05 R06 :F0",
+        "F1: L10 L11 L12 L13 L14 L15 L16 | R10 R11 R12 R13 R14 R15 R16 :F1",
+        "F2: L20 L21 L22 L23 L24 L25 L26 | R20 R21 R22 R23 R24 R25 R26 :F2",
+        "F3: L30 L31 L32 L33 L34 L35     |     R30 R31 R32 R33 R34 R35 :F3",
+        "F4: L40 L41 L42 L43 L44 L45     |     R40 R41 R42 R43 R44 R45 :F4",
+        "          PULGAR: L50 L51 L52   |   R50 R51 R52 :PULGAR",
+        "",
+        "Nota: Los IDs vacíos o desconocidos se convertirán en KC_NO."
+    ],
+    "invert_layout": false,
+    "geonix_layout": [
+        ["L11", "L12", "L13", "L14", "L15",    "",    "", "R11", "R12", "R13", "R14", "R15"],
+        ["L21", "L22", "L23", "L24", "L25",    "",    "", "R21", "R22", "R23", "R24", "R25"],
+        ["L31", "L32", "L33", "L34", "L35",    "",    "", "R30", "R31", "R32", "R33", "R34"],
+        [   "",    "",    "", "L44", "L50", "L51", "R51", "R52", "R41",    "",    "",    ""]
+    ]
+}
