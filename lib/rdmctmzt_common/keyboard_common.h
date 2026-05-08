@@ -82,6 +82,7 @@ extern bool Key_Fn_Status;
 
 // Battery display state
 extern bool    User_Key_Batt_Num_Show;
+extern bool    User_Key_Batt2_Show;
 extern uint8_t User_Key_Batt_Count;
 
 // LED feedback blink counters
@@ -142,6 +143,7 @@ void kb_led_rf_mode_show(void);
 void kb_led_power_low_show(void);
 void kb_led_point_flash_show(void);
 void kb_led_batt_number_show(void);
+void kb_led_batt2_number_show(void);
 void kb_user_point_show(void);
 void kb_user_test_colour_show(void);
 void kb_update_connection_indicator(void);

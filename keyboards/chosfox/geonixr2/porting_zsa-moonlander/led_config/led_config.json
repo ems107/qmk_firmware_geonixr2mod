@@ -32,23 +32,54 @@
     "pos": [3, 11]
   },
 
-  "battery_bar": {
-    "_comment": "LEDs para mostrar nivel de batería al pulsar QK_BAT. El orden del array define la dirección de llenado (primer elemento = primer LED encendido). Se listan las 48 posiciones visuales (4x12); el script descarta las que resulten en NO_LED tras aplicar invert_layout.",
-    "low_threshold": 20,
-    "med_threshold": 50,
-    "leds": [
-      [3, 0],[2, 0],[1, 0],[0, 0],
-      [3, 1],[2, 1],[1, 1],[0, 1],
-      [3, 2],[2, 2],[1, 2],[0, 2],
-      [3, 3],[2, 3],[1, 3],[0, 3],
-      [3, 4],[2, 4],[1, 4],[0, 4],
-      [3, 5],[2, 5],[1, 5],[0, 5],
-      [3, 6],[2, 6],[1, 6],[0, 6],
-      [3, 7],[2, 7],[1, 7],[0, 7],
-      [3, 8],[2, 8],[1, 8],[0, 8],
-      [3, 9],[2, 9],[1, 9],[0, 9],
-      [3,10],[2,10],[1,10],[0,10],
-      [3,11],[2,11],[1,11],[0,11]
-    ]
+  "qk_bat_config": {
+    "_comment": "Configuración para el keycode QK_BAT clásico.",
+    "battery_bar": {
+      "_comment": "Barra de progreso de batería. El orden del array define la dirección de llenado.",
+      "low_threshold": 20,
+      "med_threshold": 50,
+      "leds": [
+        [3, 0],[2, 0],[1, 0],[0, 0],
+        [3, 1],[2, 1],[1, 1],[0, 1],
+        [3, 2],[2, 2],[1, 2],[0, 2],
+        [3, 3],[2, 3],[1, 3],[0, 3],
+        [3, 4],[2, 4],[1, 4],[0, 4],
+        [3, 5],[2, 5],[1, 5],[0, 5],
+        [3, 6],[2, 6],[1, 6],[0, 6],
+        [3, 7],[2, 7],[1, 7],[0, 7],
+        [3, 8],[2, 8],[1, 8],[0, 8],
+        [3, 9],[2, 9],[1, 9],[0, 9],
+        [3,10],[2,10],[1,10],[0,10],
+        [3,11],[2,11],[1,11],[0,11]
+      ]
+    }
+  },
+
+  "qk_bat2_config": {
+    "_comment": "Configuración para QK_BAT2 (Números 3x5 girados + barra superior).",
+    "battery_digit_display": {
+      "_comment": "Matrices 3x5 para dibujar números girados. Array de 15 posiciones visuales [fila, col] en orden de lectura del número (de izq a der, de arriba a abajo).",
+      "digit_tens_matrix": [
+        [3,0], [2,0], [1,0],
+        [3,1], [2,1], [1,1],
+        [3,2], [2,2], [1,2],
+        [3,3], [2,3], [1,3],
+        [3,4], [2,4], [1,4]
+      ],
+      "digit_units_matrix": [
+        [3,7], [2,7], [1,7],
+        [3,8], [2,8], [1,8],
+        [3,9], [2,9], [1,9],
+        [3,10], [2,10], [1,10],
+        [3,11], [2,11], [1,11]
+      ]
+    },
+    "battery_bar": {
+      "_comment": "Barra de progreso secundaria que acompaña a los números en la fila 0.",
+      "low_threshold": 20,
+      "med_threshold": 50,
+      "leds": [
+      ]
+    }
   }
 }

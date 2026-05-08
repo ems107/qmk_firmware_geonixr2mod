@@ -48,6 +48,27 @@
 #define BATTERY_MED_THRESHOLD 50
 
 // ============================================================
+// Battery Digits & Secondary Bar (QK_BAT2 display)
+// ============================================================
+#define BATTERY2_DIGIT_TENS_ARRAY {11, 23, 35, 10, 22, 34, 9, 21, 33, 8, 20, 32, 7, 19, 31}
+#define BATTERY2_DIGIT_UNITS_ARRAY {4, 16, 28, 3, 15, 27, 2, 14, 26, 1, 13, 25, 0, 12, 24}
+
+// Digit patterns (16-bit) mapping 3x5 grids (left-to-right, top-to-bottom)
+#ifndef __ASSEMBLER__
+#include <stdint.h>
+/* 0: 0xF6D7, 1: 0x2C97, 2: 0x73E7, 3: 0x73CF, 4: 0x5BC9, 5: 0x79CF, 6: 0x79EF, 7: 0x7292, 8: 0x7BEF, 9: 0x7BCF */
+static const uint16_t BATTERY2_DIGIT_PATTERNS[10] = {
+    0xF6D7, 0x2C97, 0x73E7, 0x73CF, 0x5BC9,
+    0x79CF, 0x79EF, 0x7292, 0x7BEF, 0x7BCF
+};
+#endif
+
+#define BATTERY2_LED_COUNT     0
+#define BATTERY2_LED_ARRAY     {}
+#define BATTERY2_LOW_THRESHOLD 20
+#define BATTERY2_MED_THRESHOLD 50
+
+// ============================================================
 // Layers that activate the connection mode indicator (Fn-held)
 // ============================================================
 #define FN_LAYER_COUNT 1

@@ -26,6 +26,7 @@ bool Key_Fn_Status = false;
 
 // Battery display state
 bool    User_Key_Batt_Num_Show = false;
+bool    User_Key_Batt2_Show    = false;
 uint8_t User_Key_Batt_Count    = 0;
 
 // LED feedback blink counters
@@ -239,6 +240,73 @@ void kb_led_batt_number_show(void) {
     }
 }
 
+#ifdef BATTERY2_DIGIT_TENS_ARRAY
+void kb_led_batt2_number_show(void) {
+    uint8_t batt_val = (Keyboard_Info.Batt_Number == 100) ? 99 : Keyboard_Info.Batt_Number;
+    uint8_t tens = batt_val / 10;
+    uint8_t units = batt_val % 10;
+    uint8_t r, g, b;
+    kb_get_battery_color(batt_val, &r, &g, &b);
+
+    // Draw digits
+    const uint8_t tens_leds[15] = BATTERY2_DIGIT_TENS_ARRAY;
+    const uint8_t units_leds[15] = BATTERY2_DIGIT_UNITS_ARRAY;
+    uint16_t tens_pattern = BATTERY2_DIGIT_PATTERNS[tens];
+    uint16_t units_pattern = BATTERY2_DIGIT_PATTERNS[units];
+
+    for (int i = 0; i < 15; i++) {
+        // Bits are read left-to-right from MSB to LSB.
+        // We shift the bit to the right and check if it's 1.
+        if (tens_leds[i] != 255) { // Check NO_LED
+            if ((tens_pattern >> (15 - 1 - i)) & 1) {
+                kb_set_led_color(tens_leds[i], r, g, b);
+            } else {
+                kb_led_off(tens_leds[i]);
+            }
+        }
+        
+        if (units_leds[i] != 255) { // Check NO_LED
+            if ((units_pattern >> (15 - 1 - i)) & 1) {
+                kb_set_led_color(units_leds[i], r, g, b);
+            } else {
+                kb_led_off(units_leds[i]);
+            }
+        }
+    }
+
+    // Draw secondary battery bar (Row 0)
+#if BATTERY2_LED_COUNT > 0
+    const uint8_t bar_leds[BATTERY2_LED_COUNT] = BATTERY2_LED_ARRAY;
+    if (es_stdby_pin_state == 1) {
+        // Charging animation - wave effect
+        if (Batt_Led_Count >= 2) {
+            Batt_Led_Count      = 0;
+            User_Key_Batt_Count = (User_Key_Batt_Count > 3) ? (User_Key_Batt_Count - 3) : 127;
+        }
+
+        uint8_t wave_offset = User_Key_Batt_Count;
+        for (uint8_t i = 0; i < BATTERY2_LED_COUNT; i++) {
+            kb_set_led_color(bar_leds[i], 0, Led_Wave_Pwm_Tab[wave_offset], 0);
+            wave_offset = (wave_offset + 8) % 128;
+        }
+    } else if (es_stdby_pin_state == 2) {
+        // Fully charged - solid green
+        for (uint8_t i = 0; i < BATTERY2_LED_COUNT; i++) {
+            kb_set_led_color(bar_leds[i], COLOR_GREEN);
+        }
+    } else {
+        // Normal battery display
+        uint8_t led_count = (batt_val * BATTERY2_LED_COUNT) / 100;
+        if (led_count > BATTERY2_LED_COUNT) led_count = BATTERY2_LED_COUNT;
+
+        for (uint8_t i = 0; i < led_count; i++) {
+            kb_set_led_color(bar_leds[i], r, g, b);
+        }
+    }
+#endif
+}
+#endif
+
 void kb_user_point_show(void) {
     if (Led_Point_Count || Mac_Win_Point_Count) {
         kb_led_point_flash_show();
@@ -391,7 +459,7 @@ bool kb_rgb_matrix_indicators_common(uint8_t led_min, uint8_t led_max) {
     }
 
     // Show temporary mode/battery indicators when triggered
-    if (User_Key_Batt_Num_Show || Show_Mode_Indicator) {
+    if (User_Key_Batt_Num_Show || User_Key_Batt2_Show || Show_Mode_Indicator) {
         // Reuse the connection mode indicator function
         kb_show_current_connection_mode();
 
@@ -410,6 +478,27 @@ bool kb_rgb_matrix_indicators_common(uint8_t led_min, uint8_t led_max) {
                 }
             }
         }
+#ifdef BATTERY2_DIGIT_TENS_ARRAY
+        if (User_Key_Batt2_Show) {
+            uint8_t batt_val = (Keyboard_Info.Batt_Number == 100) ? 99 : Keyboard_Info.Batt_Number;
+            uint8_t battery2_leds = (batt_val * BATTERY2_LED_COUNT) / 100;
+            if (battery2_leds > BATTERY2_LED_COUNT) battery2_leds = BATTERY2_LED_COUNT;
+
+            uint8_t bat_r, bat_g, bat_b;
+            kb_get_battery_color(batt_val, &bat_r, &bat_g, &bat_b);
+
+#if BATTERY2_LED_COUNT > 0
+            const uint8_t Led_Batt2_Index_Tab[BATTERY2_LED_COUNT] = BATTERY2_LED_ARRAY;
+            for (uint8_t i = 0; i < BATTERY2_LED_COUNT; i++) {
+                if (i < battery2_leds) {
+                    kb_set_led_color(Led_Batt2_Index_Tab[i], bat_r, bat_g, bat_b);
+                } else {
+                    kb_led_off(Led_Batt2_Index_Tab[i]);
+                }
+            }
+#endif
+        }
+#endif
     }
 
     if (User_Power_Low) {
@@ -420,6 +509,10 @@ bool kb_rgb_matrix_indicators_common(uint8_t led_min, uint8_t led_max) {
         kb_led_rf_mode_show();
     } else if (User_Key_Batt_Num_Show) {
         kb_led_batt_number_show();
+#ifdef BATTERY2_DIGIT_TENS_ARRAY
+    } else if (User_Key_Batt2_Show) {
+        kb_led_batt2_number_show();
+#endif
     } else {
         kb_user_point_show();
     }
@@ -638,6 +731,16 @@ bool kb_process_record_common(uint16_t keycode, keyrecord_t *record) {
             } else {
                 User_Key_Batt_Num_Show = false;
                 User_Key_Batt_Count    = 0;
+            }
+        }
+            return true;
+        case QMK_BATT_NUM_2: {
+            if (record->event.pressed) {
+                User_Key_Batt2_Show = true;
+                User_Key_Batt_Count = 0; // Compartimos contador de animación
+            } else {
+                User_Key_Batt2_Show = false;
+                User_Key_Batt_Count = 0;
             }
         }
             return true;

@@ -176,21 +176,21 @@ def generate(cfg: dict, invert: bool) -> str:
         lines.append(f"#define {name} {val}")
     lines.append("")
 
-    # ---- Battery bar ----
+    # ---- Battery bar (QK_BAT) ----
     lines.append("// ============================================================")
     lines.append("// Battery bar (QK_BAT display)")
     lines.append("// ============================================================")
 
-    bar = cfg.get("battery_bar", {})
-    low_thr = validate_threshold(bar.get("low_threshold", 20), "battery_bar.low_threshold")
-    med_thr = validate_threshold(bar.get("med_threshold", 50), "battery_bar.med_threshold")
+    bat1_cfg = cfg.get("qk_bat_config", {}).get("battery_bar", {})
+    low_thr = validate_threshold(bat1_cfg.get("low_threshold", 20), "qk_bat_config.battery_bar.low_threshold")
+    med_thr = validate_threshold(bat1_cfg.get("med_threshold", 50), "qk_bat_config.battery_bar.med_threshold")
 
     if low_thr >= med_thr:
         sys.exit(f"ERROR: battery_bar.low_threshold ({low_thr}) debe ser menor que med_threshold ({med_thr})")
 
-    bar_leds = resolve_battery_leds(bar.get("leds", []), invert)
+    bar_leds = resolve_battery_leds(bat1_cfg.get("leds", []), invert)
     if not bar_leds:
-        sys.exit("ERROR: battery_bar.leds no contiene ninguna posición válida con LED.")
+        sys.exit("ERROR: qk_bat_config.battery_bar.leds no contiene ninguna posición válida con LED.")
 
     bar_count = len(bar_leds)
     bar_array = ", ".join(str(i) for i in bar_leds)
@@ -204,6 +204,58 @@ def generate(cfg: dict, invert: bool) -> str:
     lines.append(f"#undef  BATTERY_MED_THRESHOLD")
     lines.append(f"#define BATTERY_MED_THRESHOLD {med_thr}")
     lines.append("")
+
+    # ---- Battery Digits (QK_BAT2) ----
+    lines.append("// ============================================================")
+    lines.append("// Battery Digits & Secondary Bar (QK_BAT2 display)")
+    lines.append("// ============================================================")
+
+    bat2_cfg = cfg.get("qk_bat2_config", {})
+    digit_cfg = bat2_cfg.get("battery_digit_display", {})
+    
+    tens_cfg = digit_cfg.get("digit_tens_matrix", [])
+    if len(tens_cfg) != 15:
+        sys.exit("ERROR: qk_bat2_config.battery_digit_display.digit_tens_matrix debe tener exactamente 15 posiciones.")
+    
+    units_cfg = digit_cfg.get("digit_units_matrix", [])
+    if len(units_cfg) != 15:
+        sys.exit("ERROR: qk_bat2_config.battery_digit_display.digit_units_matrix debe tener exactamente 15 posiciones.")
+
+    # We use resolve_battery_leds as it safely drops NO_LED, but for digits we CANNOT drop them
+    # because the pattern logic expects exactly 15 LEDs.
+    # So we resolve them directly, mapping NO_LED to a dummy value (e.g. 255) so it doesn't break the array size.
+    tens_leds = [resolve_led(p[0], p[1], invert) for p in tens_cfg]
+    units_leds = [resolve_led(p[0], p[1], invert) for p in units_cfg]
+
+    lines.append(f"#define BATTERY2_DIGIT_TENS_ARRAY {{{', '.join(str(i) for i in tens_leds)}}}")
+    lines.append(f"#define BATTERY2_DIGIT_UNITS_ARRAY {{{', '.join(str(i) for i in units_leds)}}}")
+    lines.append("")
+
+    lines.append("// Digit patterns (16-bit) mapping 3x5 grids (left-to-right, top-to-bottom)")
+    lines.append("#ifndef __ASSEMBLER__")
+    lines.append("#include <stdint.h>")
+    lines.append("/* 0: 0xF6D7, 1: 0x2C97, 2: 0x73E7, 3: 0x73CF, 4: 0x5BC9, 5: 0x79CF, 6: 0x79EF, 7: 0x7292, 8: 0x7BEF, 9: 0x7BCF */")
+    lines.append("static const uint16_t BATTERY2_DIGIT_PATTERNS[10] = {")
+    lines.append("    0xF6D7, 0x2C97, 0x73E7, 0x73CF, 0x5BC9,")
+    lines.append("    0x79CF, 0x79EF, 0x7292, 0x7BEF, 0x7BCF")
+    lines.append("};")
+    lines.append("#endif")
+    lines.append("")
+
+    bat2_bar = bat2_cfg.get("battery_bar", {})
+    b2_low = validate_threshold(bat2_bar.get("low_threshold", 20), "qk_bat2_config.battery_bar.low_threshold")
+    b2_med = validate_threshold(bat2_bar.get("med_threshold", 50), "qk_bat2_config.battery_bar.med_threshold")
+    
+    b2_leds = resolve_battery_leds(bat2_bar.get("leds", []), invert)
+    b2_count = len(b2_leds)
+    b2_array = ", ".join(str(i) for i in b2_leds)
+
+    lines.append(f"#define BATTERY2_LED_COUNT     {b2_count}")
+    lines.append(f"#define BATTERY2_LED_ARRAY     {{{b2_array}}}")
+    lines.append(f"#define BATTERY2_LOW_THRESHOLD {b2_low}")
+    lines.append(f"#define BATTERY2_MED_THRESHOLD {b2_med}")
+    lines.append("")
+
 
     # ---- Fn layers ----
     lines.append("// ============================================================")

@@ -288,18 +288,49 @@ Con el layout actual (capa 12), las posiciones visuales de los keycodes de conex
     "pos": [3, 11]
   },
 
-  "battery_bar": {
-    "_comment": "LEDs para QK_BAT. Orden del array = orden de llenado.",
-    "low_threshold": 20,
-    "med_threshold": 50,
-    "leds": [
-      [3,0],[2,0],[1,0],[0,0], [3,1],[2,1],[1,1],[0,1],
-      [3,2],[2,2],[1,2],[0,2], [3,3],[2,3],[1,3],[0,3],
-      [3,4],[2,4],[1,4],[0,4], [3,5],[2,5],[1,5],[0,5],
-      [3,6],[2,6],[1,6],[0,6], [3,7],[2,7],[1,7],[0,7],
-      [3,8],[2,8],[1,8],[0,8], [3,9],[2,9],[1,9],[0,9],
-      [3,10],[2,10],[1,10],[0,10], [3,11],[2,11],[1,11],[0,11]
-    ]
+  "qk_bat_config": {
+    "battery_bar": {
+      "_comment": "LEDs para QK_BAT clásico. Orden del array = orden de llenado.",
+      "low_threshold": 20,
+      "med_threshold": 50,
+      "leds": [
+        [3,0],[2,0],[1,0],[0,0], [3,1],[2,1],[1,1],[0,1],
+        [3,2],[2,2],[1,2],[0,2], [3,3],[2,3],[1,3],[0,3],
+        [3,4],[2,4],[1,4],[0,4], [3,5],[2,5],[1,5],[0,5],
+        [3,6],[2,6],[1,6],[0,6], [3,7],[2,7],[1,7],[0,7],
+        [3,8],[2,8],[1,8],[0,8], [3,9],[2,9],[1,9],[0,9],
+        [3,10],[2,10],[1,10],[0,10], [3,11],[2,11],[1,11],[0,11]
+      ]
+    }
+  },
+
+  "qk_bat2_config": {
+    "battery_digit_display": {
+      "_comment": "Matrices 3x5 para dibujar números girados (QK_BAT2).",
+      "digit_tens_matrix": [
+        [3,0], [2,0], [1,0],
+        [3,1], [2,1], [1,1],
+        [3,2], [2,2], [1,2],
+        [3,3], [2,3], [1,3],
+        [3,4], [2,4], [1,4]
+      ],
+      "digit_units_matrix": [
+        [3,7], [2,7], [1,7],
+        [3,8], [2,8], [1,8],
+        [3,9], [2,9], [1,9],
+        [3,10], [2,10], [1,10],
+        [3,11], [2,11], [1,11]
+      ]
+    },
+    "battery_bar": {
+      "_comment": "Barra de progreso secundaria en la fila 0 para QK_BAT2.",
+      "low_threshold": 20,
+      "med_threshold": 50,
+      "leds": [
+        [0,0], [0,1], [0,2], [0,3], [0,4], [0,5],
+        [0,6], [0,7], [0,8], [0,9], [0,10], [0,11]
+      ]
+    }
   }
 }
 ```
@@ -314,9 +345,11 @@ Con el layout actual (capa 12), las posiciones visuales de los keycodes de conex
 | `caps_lock_led.pos` | Posición visual del LED de Caps Lock |
 | `win_lock_led.pos` | Posición visual del LED de Win Lock |
 | `battery_low_led.pos` | Posición visual del LED de batería crítica |
-| `battery_bar.leds` | Array de posiciones visuales para la barra de batería (QK_BAT) |
-| `battery_bar.low_threshold` | Porcentaje por debajo del cual la barra es roja (default: 20) |
-| `battery_bar.med_threshold` | Porcentaje por debajo del cual la barra es amarilla (default: 50) |
+| `qk_bat_config.battery_bar.leds` | Array de posiciones visuales para la barra de batería (QK_BAT clásico) |
+| `qk_bat_config.battery_bar.*_threshold` | Porcentajes de color para QK_BAT clásico |
+| `qk_bat2_config.battery_digit_display.*` | Matrices visuales 3x5 de 15 posiciones para dibujar los números (QK_BAT2) |
+| `qk_bat2_config.battery_bar.leds` | Array de posiciones para la barra secundaria (puede estar vacío) |
+| `qk_bat2_config.battery_bar.*_threshold` | Porcentajes de color para la barra secundaria de QK_BAT2 |
 
 #### Lo que `led_config_gen.py` genera
 

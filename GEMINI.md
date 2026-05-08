@@ -85,6 +85,10 @@ The `rdmctmzt_common` library controls system indicator LEDs (connection mode, C
 
 When `hasToOverrideLedConfig: true`, the generated `led_indicators.h` uses `#undef` + `#define` to override those defaults with user-configured values. This makes the LED positions fully configurable per-keymap without touching the library.
 
+The system supports two battery display keycodes:
+- `QK_BAT`: The classic battery bar indicator.
+- `QK_BAT2`: A custom numerical display using 3x5 digit matrices and a secondary progress bar.
+
 The `keyboard_common.c` library has been refactored to support configurable Fn layers:
 - **With `led_indicators.h`** (`FN_LAYER_COUNT` defined): detects any `MO(N)` where N is in `FN_LAYERS[]` to trigger the connection-mode indicator while held.
 - **Without `led_indicators.h`** (keymap `default` and others): falls back to hardcoded `MO(2)` / `MO(3)` — fully backward-compatible.
@@ -95,4 +99,4 @@ The `keyboard_common.c` library has been refactored to support configurable Fn l
 - Wireless states are managed by the `rdmctmzt_common` library. Keymaps must respect these states for proper operation.
 - `DYNAMIC_KEYMAP_ENABLE = yes` is mandatory in the keymap's `rules.mk` because the keyboard-level build includes `quantum/dynamic_keymap.c` unconditionally.
 - BT channel limit is **hardware-enforced** at 3 profiles. No software workaround exists.
-- `led_indicators.h` must NOT include `<stdint.h>` directly — it is processed by assembler startup files via the config chain. The `extern const uint8_t FN_LAYERS[]` declaration lives only in `keyboard_common.h` (which is compiled only in C context).
+- `led_indicators.h` is processed by assembler startup files via the config chain. Therefore, any C definitions (like the `uint16_t BATTERY2_DIGIT_PATTERNS` array for `QK_BAT2`) must be wrapped in `#ifndef __ASSEMBLER__` to prevent build failures.

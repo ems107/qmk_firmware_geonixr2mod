@@ -73,6 +73,7 @@ enum Custom_Keycodes {
     QMK_KB_MODE_BLE3,
     QMK_KB_MODE_USB,
     QMK_BATT_NUM,
+    QMK_BATT_NUM_2,
     QMK_WIN_LOCK,
     QMK_KB_SIX_N_CH,
     QMK_TEST_COLOUR,
@@ -239,6 +240,7 @@ typedef enum {
 #define MD_BLE3 QMK_KB_MODE_BLE3
 #define MD_USB QMK_KB_MODE_USB
 #define QK_BAT QMK_BATT_NUM
+#define QK_BAT2 QMK_BATT_NUM_2
 #define QK_WLO QMK_WIN_LOCK
 #define SIX_N QMK_KB_SIX_N_CH
 #define TEST_CL QMK_TEST_COLOUR
