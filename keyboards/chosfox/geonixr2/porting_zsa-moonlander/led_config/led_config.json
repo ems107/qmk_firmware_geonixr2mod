@@ -1,0 +1,54 @@
+{
+  "_comment": "Configuración de LEDs indicadores para el keymap zsa-moonlander del Geonix R2.",
+  "_comment_pos": "Posiciones en coordenadas VISUALES [fila, col] (0-indexed). Fila 0 = fila superior visual. El script aplica invert_layout de mapping.json automáticamente. Posiciones que resulten en NO_LED tras la transformación se descartan silenciosamente.",
+
+  "connection_leds": {
+    "_comment": "Indicadores de modo de conexión. Cada LED se ilumina al activar el modo correspondiente, y también mientras se mantiene cualquier capa en indicator_layers.",
+
+    "indicator_layers": {
+      "_comment": "Capas MO(N) que muestran el modo de conexión activo mientras se mantienen pulsadas.",
+      "layers": [12]
+    },
+
+    "usb":  { "pos": [0, 0] },
+    "ble1": { "pos": [0, 1], "name": "Geonix rev.2-1" },
+    "ble2": { "pos": [0, 2], "name": "Geonix rev.2-2" },
+    "ble3": { "pos": [0, 3], "name": "Geonix rev.2-3" },
+    "g24":  { "pos": [0, 4] }
+  },
+
+  "caps_lock_led": {
+    "_comment": "LED que se ilumina en blanco cuando Caps Lock está activo.",
+    "pos": [1, 0]
+  },
+
+  "win_lock_led": {
+    "_comment": "LED que se ilumina en blanco cuando Win Lock está activo.",
+    "pos": [2, 0]
+  },
+
+  "battery_low_led": {
+    "_comment": "LED que parpadea en rojo cuando la batería está críticamente baja.",
+    "pos": [3, 11]
+  },
+
+  "battery_bar": {
+    "_comment": "LEDs para mostrar nivel de batería al pulsar QK_BAT. El orden del array define la dirección de llenado (primer elemento = primer LED encendido). Se listan las 48 posiciones visuales (4x12); el script descarta las que resulten en NO_LED tras aplicar invert_layout.",
+    "low_threshold": 20,
+    "med_threshold": 50,
+    "leds": [
+      [3, 0],[2, 0],[1, 0],[0, 0],
+      [3, 1],[2, 1],[1, 1],[0, 1],
+      [3, 2],[2, 2],[1, 2],[0, 2],
+      [3, 3],[2, 3],[1, 3],[0, 3],
+      [3, 4],[2, 4],[1, 4],[0, 4],
+      [3, 5],[2, 5],[1, 5],[0, 5],
+      [3, 6],[2, 6],[1, 6],[0, 6],
+      [3, 7],[2, 7],[1, 7],[0, 7],
+      [3, 8],[2, 8],[1, 8],[0, 8],
+      [3, 9],[2, 9],[1, 9],[0, 9],
+      [3,10],[2,10],[1,10],[0,10],
+      [3,11],[2,11],[1,11],[0,11]
+    ]
+  }
+}

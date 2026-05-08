@@ -93,6 +93,19 @@ extern bool    Test_Led;
 extern uint8_t Test_Colour;
 
 // ============================================================================
+// Fn-layer configuration (optional — set by keymap via led_indicators.h)
+// ============================================================================
+// When FN_LAYER_COUNT is defined (via led_indicators.h included from the
+// keymap's config.h), keyboard_common uses FN_LAYERS[] to detect which
+// MO(N) layers trigger the connection-mode indicator.
+// If FN_LAYER_COUNT is not defined, falls back to hardcoded MO(2)/MO(3).
+#ifdef FN_LAYER_COUNT
+#  ifndef __ASSEMBLER__
+extern const uint8_t FN_LAYERS[FN_LAYER_COUNT];
+#  endif
+#endif
+
+// ============================================================================
 // Function Prototypes - Must be implemented by each keyboard
 // ============================================================================
 

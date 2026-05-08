@@ -27,6 +27,9 @@ enum tap_dance_codes {
 
 #define DUAL_FUNC_0 LT(14, KC_D)
 
+// FN_LAYERS: defined here so keyboard_common.c can use extern declaration
+const uint8_t FN_LAYERS[FN_LAYER_COUNT] = {12};
+
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     [0] = LAYOUT_tkl_ansi(

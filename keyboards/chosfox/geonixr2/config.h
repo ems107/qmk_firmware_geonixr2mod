@@ -71,12 +71,32 @@
 #define HAS_MODE_SWITCH 0
 
 // LED Index Definitions for keyboard_common library
-#define LED_CONNECTION_INDEX 11 // Connection type indicator (BLE/2.4G/USB)
-#define LED_CAP_INDEX 12        // Caps Lock indicator
-#define LED_WIN_L_INDEX 40      // Win Lock indicator
-#define LED_BATT_INDEX 36       // Battery status indicator
-#define LED_BLE_1_INDEX 1       // 'Q' key position
-#define LED_BLE_2_INDEX 2       // 'W' key position
-#define LED_BLE_3_INDEX 3       // 'E' key position
-#define LED_2P4G_INDEX 4        // 'R' key position
-#define LED_USB_INDEX 0         // 'Tab' key position
+// These are the fallback defaults used when no keymap-specific led_indicators.h
+// is present. Each keymap can override these via its own led_indicators.h.
+#ifndef LED_CONNECTION_INDEX
+#    define LED_CONNECTION_INDEX 11 // Connection type indicator (BLE/2.4G/USB)
+#endif
+#ifndef LED_CAP_INDEX
+#    define LED_CAP_INDEX 12        // Caps Lock indicator
+#endif
+#ifndef LED_WIN_L_INDEX
+#    define LED_WIN_L_INDEX 40      // Win Lock indicator
+#endif
+#ifndef LED_BATT_INDEX
+#    define LED_BATT_INDEX 36       // Battery status indicator
+#endif
+#ifndef LED_BLE_1_INDEX
+#    define LED_BLE_1_INDEX 1       // 'Q' key position
+#endif
+#ifndef LED_BLE_2_INDEX
+#    define LED_BLE_2_INDEX 2       // 'W' key position
+#endif
+#ifndef LED_BLE_3_INDEX
+#    define LED_BLE_3_INDEX 3       // 'E' key position
+#endif
+#ifndef LED_2P4G_INDEX
+#    define LED_2P4G_INDEX 4        // 'R' key position
+#endif
+#ifndef LED_USB_INDEX
+#    define LED_USB_INDEX 0         // 'Tab' key position
+#endif

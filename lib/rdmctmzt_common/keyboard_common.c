@@ -744,7 +744,10 @@ bool kb_process_record_common(uint16_t keycode, keyrecord_t *record) {
             }
         }
             return true;
-        case MO(2): { // FN
+/// Fn-layer detection: configurable via led_indicators.h (FN_LAYER_COUNT + FN_LAYERS[])
+// or hardcoded fallback to MO(2)/MO(3) when not defined.
+#ifndef FN_LAYER_COUNT
+        case MO(2): { // FN (hardcoded fallback)
             if (record->event.pressed) {
                 Key_Fn_Status = true;
             } else {
@@ -752,7 +755,7 @@ bool kb_process_record_common(uint16_t keycode, keyrecord_t *record) {
             }
         }
             return true;
-        case MO(3): { // FN
+        case MO(3): { // FN (hardcoded fallback)
             if (record->event.pressed) {
                 Key_Fn_Status = true;
             } else {
@@ -760,6 +763,7 @@ bool kb_process_record_common(uint16_t keycode, keyrecord_t *record) {
             }
         }
             return true;
+#endif
         case EE_CLR: {
             if (record->event.pressed) {
                 Key_Reset_Status      = true;
@@ -805,6 +809,19 @@ bool kb_process_record_common(uint16_t keycode, keyrecord_t *record) {
             return true;
 
         default:
+#ifdef FN_LAYER_COUNT
+            // Configurable Fn-layer detection via FN_LAYERS[]
+            if (keycode >= QK_MOMENTARY && keycode <= QK_MOMENTARY_MAX) {
+                uint8_t layer = QK_MOMENTARY_GET_LAYER(keycode);
+                for (uint8_t i = 0; i < FN_LAYER_COUNT; i++) {
+                    if (layer == FN_LAYERS[i]) {
+                        Key_Fn_Status = record->event.pressed;
+                        return true;
+                    }
+                }
+            }
+#endif
             return true;
     }
 }
+
