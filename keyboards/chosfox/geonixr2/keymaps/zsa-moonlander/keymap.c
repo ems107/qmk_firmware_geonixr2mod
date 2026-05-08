@@ -2,6 +2,13 @@
 #include "rdmctmzt_common.h"
 #include "i18n.h"
 
+// ==============================================================================
+// ⚠️ WARNING: THIS KEYMAP WAS GENERATED WITH invert_layout=true ⚠️
+// The physical layout is inverted vertically and horizontally from the source.
+// The uncommented code below represents the hardware matrix.
+// The commented blocks above each layer represent the visual layout.
+// ==============================================================================
+
 enum custom_keycodes {
     ST_MACRO_0 = SAFE_RANGE,
     ST_MACRO_1,
@@ -32,78 +39,169 @@ const uint8_t FN_LAYERS[FN_LAYER_COUNT] = {12};
 
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
+    // -----------------------------------------------------------------------------------------
+    // VISUAL LAYOUT (Layer 0):
+    //      KC_Q,    KC_W,    KC_F,        KC_P,  KC_B,     KC_TRNS,            MO(12),       KC_J,          KC_L,        KC_U,     KC_Y,     KC_BSPC,
+    //      KC_A,    KC_R,    KC_S,        KC_T,  KC_G,     MO(7),              MO(8),        KC_M,          TD(DANCE_1), KC_E,     KC_I,     KC_O,
+    //      KC_Z,    KC_X,    TD(DANCE_0), KC_D,  KC_V,     LALT(LCTL(KC_TAB)), LGUI(KC_TAB), KC_K,          KC_H,        KC_COMMA, KC_DOT,   KC_ENTER,
+    //      KC_TRNS, KC_DOWN, KC_UP,       MO(4), KC_SPACE,                     MO(6),        KC_LEFT_SHIFT, MO(5),       KC_LEFT,  KC_RIGHT, KC_TRNS
+    // -----------------------------------------------------------------------------------------
     [0] = LAYOUT_tkl_ansi(
         KC_TRNS,  KC_RIGHT, KC_LEFT,  MO(5),       KC_LEFT_SHIFT, MO(2),        MO(6),              KC_SPACE, MO(4), KC_UP,       KC_DOWN, KC_TRNS,
         KC_ENTER, KC_DOT,   KC_COMMA, KC_H,        KC_K,          LGUI(KC_TAB), LALT(LCTL(KC_TAB)), KC_V,     KC_D,  TD(DANCE_0), KC_X,    KC_Z,
         KC_O,     KC_I,     KC_E,     TD(DANCE_1), KC_M,          MO(8),        MO(7),              KC_G,     KC_T,  KC_S,        KC_R,    KC_A,
         KC_BSPC,  KC_Y,     KC_U,     KC_L,        KC_J,                        MO(12),             KC_B,     KC_P,  KC_F,        KC_W,    KC_Q
     ),
+    // -----------------------------------------------------------------------------------------
+    // VISUAL LAYOUT (Layer 1):
+    //      LSFT(KC_Q), LSFT(KC_W), LSFT(KC_F), LSFT(KC_P),     LSFT(KC_B), KC_TRNS,        MO(12),         LSFT(KC_J),      LSFT(KC_L),     LSFT(KC_U), LSFT(KC_Y), ES_DQUO,
+    //      LSFT(KC_A), LSFT(KC_R), LSFT(KC_S), LSFT(KC_T),     LSFT(KC_G), KC_TRANSPARENT, DUAL_FUNC_0,    LSFT(KC_M),      LSFT(KC_N),     LSFT(KC_E), LSFT(KC_I), LSFT(KC_O),
+    //      LSFT(KC_Z), LSFT(KC_X), LSFT(KC_C), LSFT(KC_D),     LSFT(KC_V), KC_TRANSPARENT, KC_TRANSPARENT, LSFT(KC_K),      LSFT(KC_H),     ES_SCLN,    ES_COLN,    ES_UNDS,
+    //      KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRANSPARENT, KC_SPACE,                   KC_TRANSPARENT, LT(3, KC_SPACE), KC_TRANSPARENT, KC_TRNS,    KC_TRNS,    KC_TRNS
+    // -----------------------------------------------------------------------------------------
     [1] = LAYOUT_tkl_ansi(
         KC_TRNS,    KC_TRNS,    KC_TRNS,    KC_TRANSPARENT, LT(3, KC_SPACE), ES_TILD,        KC_TRANSPARENT, KC_SPACE,   KC_TRANSPARENT, KC_TRNS,    KC_TRNS,    KC_TRNS,
         ES_UNDS,    ES_COLN,    ES_SCLN,    LSFT(KC_H),     LSFT(KC_K),      KC_TRANSPARENT, KC_TRANSPARENT, LSFT(KC_V), LSFT(KC_D),     LSFT(KC_C), LSFT(KC_X), LSFT(KC_Z),
         LSFT(KC_O), LSFT(KC_I), LSFT(KC_E), LSFT(KC_N),     LSFT(KC_M),      DUAL_FUNC_0,    KC_TRANSPARENT, LSFT(KC_G), LSFT(KC_T),     LSFT(KC_S), LSFT(KC_R), LSFT(KC_A),
         ES_DQUO,    LSFT(KC_Y), LSFT(KC_U), LSFT(KC_L),     LSFT(KC_J),                      MO(12),         LSFT(KC_B), LSFT(KC_P),     LSFT(KC_F), LSFT(KC_W), LSFT(KC_Q)
     ),
+    // -----------------------------------------------------------------------------------------
+    // VISUAL LAYOUT (Layer 2):
+    //      LALT(LCTL(ES_OVRR)), ES_LBRC, ES_LPRN, ES_LCBR, ES_HASH,        KC_TRNS, MO(12), ES_EQL,  ES_APOS, ES_LESS, ES_IEXL,    ES_IQUE,
+    //      KC_1,                KC_2,    KC_3,    KC_4,    KC_5,           KC_NO,   KC_NO,  KC_6,    KC_7,    KC_8,    KC_9,       KC_0,
+    //      ES_SLSH,             ES_RBRC, ES_RPRN, ES_RCBR, ES_AMPR,        KC_NO,   KC_NO,  ES_PIPE, ES_DQUO, ES_GRTR, LSFT(KC_1), ES_QUES,
+    //      KC_TRNS,             KC_TRNS, KC_TRNS, KC_NO,   KC_TRANSPARENT,          KC_NO,  KC_NO,   KC_NO,   KC_TRNS, KC_TRNS,    KC_TRNS
+    // -----------------------------------------------------------------------------------------
     [2] = LAYOUT_tkl_ansi(
         KC_TRNS, KC_TRNS,    KC_TRNS, KC_NO,   KC_NO,   KC_NO, KC_NO,  KC_TRANSPARENT, KC_NO,   KC_TRNS, KC_TRNS, KC_TRNS,
         ES_QUES, LSFT(KC_1), ES_GRTR, ES_DQUO, ES_PIPE, KC_NO, KC_NO,  ES_AMPR,        ES_RCBR, ES_RPRN, ES_RBRC, ES_SLSH,
         KC_0,    KC_9,       KC_8,    KC_7,    KC_6,    KC_NO, KC_NO,  KC_5,           KC_4,    KC_3,    KC_2,    KC_1,
         ES_IQUE, ES_IEXL,    ES_LESS, ES_APOS, ES_EQL,         MO(12), ES_HASH,        ES_LCBR, ES_LPRN, ES_LBRC, LALT(LCTL(ES_OVRR))
     ),
+    // -----------------------------------------------------------------------------------------
+    // VISUAL LAYOUT (Layer 3):
+    //      LSFT(ES_OVRR), ES_ASTR, ES_HASH,    LSFT(KC_5),     ST_MACRO_0,     KC_TRNS,        MO(12),         ST_MACRO_4,     ST_MACRO_5,       ST_MACRO_6,  ST_MACRO_7,  ES_OVRR,
+    //      ST_MACRO_1,    ES_PLUS, ES_EQL,     ES_AMPR,        ES_AT,          KC_TRANSPARENT, KC_TRANSPARENT, ST_MACRO_8,     ST_MACRO_9,       ST_MACRO_10, ST_MACRO_11, ST_MACRO_12,
+    //      ST_MACRO_2,    ES_OVDT, ST_MACRO_3, ES_PIPE,        ES_NOT,         KC_TRANSPARENT, KC_TRANSPARENT, KC_NO,          LALT(LCTL(KC_E)), LSFT(KC_4),  ST_MACRO_13, ST_MACRO_14,
+    //      KC_TRNS,       KC_TRNS, KC_TRNS,    KC_TRANSPARENT, KC_TRANSPARENT,                 KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT,   KC_TRNS,     KC_TRNS,     KC_TRNS
+    // -----------------------------------------------------------------------------------------
     [3] = LAYOUT_tkl_ansi(
         KC_TRNS,     KC_TRNS,     KC_TRNS,     KC_TRANSPARENT,   KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRNS,    KC_TRNS, KC_TRNS,
         ST_MACRO_14, ST_MACRO_13, LSFT(KC_4),  LALT(LCTL(KC_E)), KC_NO,          KC_TRANSPARENT, KC_TRANSPARENT, ES_NOT,         ES_PIPE,        ST_MACRO_3, ES_OVDT, ST_MACRO_2,
         ST_MACRO_12, ST_MACRO_11, ST_MACRO_10, ST_MACRO_9,       ST_MACRO_8,     KC_TRANSPARENT, KC_TRANSPARENT, ES_AT,          ES_AMPR,        ES_EQL,     ES_PLUS, ST_MACRO_1,
         ES_OVRR,     ST_MACRO_7,  ST_MACRO_6,  ST_MACRO_5,       ST_MACRO_4,                     MO(12),         ST_MACRO_0,     LSFT(KC_5),     ES_HASH,    ES_ASTR, LSFT(ES_OVRR)
     ),
+    // -----------------------------------------------------------------------------------------
+    // VISUAL LAYOUT (Layer 4):
+    //      KC_LEFT_SHIFT, MS_BTN2,     MS_BTN3,     MS_BTN1,        KC_TRANSPARENT, KC_TRNS,        MO(12),         KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT,
+    //      KC_LEFT_CTRL,  KC_LEFT_GUI, KC_LEFT_ALT, KC_LEFT_SHIFT,  KC_F11,         KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT,
+    //      KC_F1,         KC_F2,       KC_F3,       KC_F4,          KC_F5,          KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT,
+    //      KC_TRNS,       KC_TRNS,     KC_TRNS,     KC_TRANSPARENT, KC_TRANSPARENT,                 KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRNS,        KC_TRNS,        KC_TRNS
+    // -----------------------------------------------------------------------------------------
     [4] = LAYOUT_tkl_ansi(
         KC_TRNS,        KC_TRNS,        KC_TRNS,        KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRNS,     KC_TRNS,     KC_TRNS,
         KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_F5,          KC_F4,          KC_F3,       KC_F2,       KC_F1,
         KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_F11,         KC_LEFT_SHIFT,  KC_LEFT_ALT, KC_LEFT_GUI, KC_LEFT_CTRL,
         KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT,                 MO(12),         KC_TRANSPARENT, MS_BTN1,        MS_BTN3,     MS_BTN2,     KC_LEFT_SHIFT
     ),
+    // -----------------------------------------------------------------------------------------
+    // VISUAL LAYOUT (Layer 5):
+    //      KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRNS,        MO(12),         ES_CIRC,        ES_ACUT,        ES_GRV,      LSFT(ES_ACUT), KC_TRANSPARENT,
+    //      KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_F12,         KC_LEFT_SHIFT,  KC_LEFT_ALT, KC_LEFT_GUI,   KC_LEFT_CTRL,
+    //      KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_F6,          KC_F7,          KC_F8,       KC_F9,         KC_F10,
+    //      KC_TRNS,        KC_TRNS,        KC_TRNS,        KC_TRANSPARENT, KC_TRANSPARENT,                 KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRNS,     KC_TRNS,       KC_TRNS
+    // -----------------------------------------------------------------------------------------
     [5] = LAYOUT_tkl_ansi(
         KC_TRNS,        KC_TRNS,       KC_TRNS,     KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRNS,        KC_TRNS,        KC_TRNS,
         KC_F10,         KC_F9,         KC_F8,       KC_F7,          KC_F6,          KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT,
         KC_LEFT_CTRL,   KC_LEFT_GUI,   KC_LEFT_ALT, KC_LEFT_SHIFT,  KC_F12,         KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT,
         KC_TRANSPARENT, LSFT(ES_ACUT), ES_GRV,      ES_ACUT,        ES_CIRC,                        MO(12),         KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT
     ),
+    // -----------------------------------------------------------------------------------------
+    // VISUAL LAYOUT (Layer 6):
+    //      KC_ESCAPE,    KC_NO,       KC_NO,       KC_NO,         KC_NO,         KC_TRNS, MO(12), KC_DELETE,      KC_HOME, KC_UP,   KC_END,   KC_BSPC,
+    //      KC_LEFT_CTRL, KC_LEFT_GUI, KC_LEFT_ALT, KC_LEFT_SHIFT, KC_LEFT_SHIFT, KC_NO,   KC_NO,  KC_INSERT,      KC_LEFT, KC_DOWN, KC_RIGHT, KC_TAB,
+    //      KC_NO,        KC_NO,       KC_NO,       KC_NO,         KC_NO,         KC_NO,   KC_NO,  KC_NO,          ES_MINS, KC_NO,   ES_PLUS,  KC_ENTER,
+    //      KC_TRNS,      KC_TRNS,     KC_TRNS,     KC_NO,         KC_NO,                  KC_NO,  KC_WWW_FORWARD, KC_NO,   KC_TRNS, KC_TRNS,  KC_TRNS
+    // -----------------------------------------------------------------------------------------
     [6] = LAYOUT_tkl_ansi(
         KC_TRNS,  KC_TRNS,  KC_TRNS, KC_NO,   KC_WWW_FORWARD, KC_WWW_BACK, KC_NO,  KC_NO,         KC_NO,         KC_TRNS,     KC_TRNS,     KC_TRNS,
         KC_ENTER, ES_PLUS,  KC_NO,   ES_MINS, KC_NO,          KC_NO,       KC_NO,  KC_NO,         KC_NO,         KC_NO,       KC_NO,       KC_NO,
         KC_TAB,   KC_RIGHT, KC_DOWN, KC_LEFT, KC_INSERT,      KC_NO,       KC_NO,  KC_LEFT_SHIFT, KC_LEFT_SHIFT, KC_LEFT_ALT, KC_LEFT_GUI, KC_LEFT_CTRL,
         KC_BSPC,  KC_END,   KC_UP,   KC_HOME, KC_DELETE,                   MO(12), KC_NO,         KC_NO,         KC_NO,       KC_NO,       KC_ESCAPE
     ),
+    // -----------------------------------------------------------------------------------------
+    // VISUAL LAYOUT (Layer 7):
+    //      KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRNS,        MO(12),         KC_F18,         KC_F23,         MS_WHLU,        KC_F24,         KC_F19,
+    //      KC_TRANSPARENT, MS_BTN2,        MS_BTN3,        MS_BTN1,        KC_TRANSPARENT, KC_TRANSPARENT, KC_WWW_FORWARD, KC_F20,         MS_WHLL,        MS_WHLD,        MS_WHLR,        KC_F21,
+    //      KC_TRANSPARENT, MS_ACL0,        MS_ACL1,        MS_ACL2,        KC_TRANSPARENT, KC_TRANSPARENT, MS_BTN3,        KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT,
+    //      KC_TRNS,        KC_TRNS,        KC_TRNS,        KC_WWW_FORWARD, KC_WWW_BACK,                    KC_TRANSPARENT, KC_WWW_FORWARD, KC_WWW_BACK,    KC_TRNS,        KC_TRNS,        KC_TRNS
+    // -----------------------------------------------------------------------------------------
     [7] = LAYOUT_tkl_ansi(
         KC_TRNS,        KC_TRNS,        KC_TRNS,        KC_WWW_BACK,    KC_WWW_FORWARD, KC_WWW_BACK,    KC_TRANSPARENT, KC_WWW_BACK,    KC_WWW_FORWARD, KC_TRNS,        KC_TRNS,        KC_TRNS,
         KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, MS_BTN3,        KC_TRANSPARENT, KC_TRANSPARENT, MS_ACL2,        MS_ACL1,        MS_ACL0,        KC_TRANSPARENT,
         KC_F21,         MS_WHLR,        MS_WHLD,        MS_WHLL,        KC_F20,         KC_WWW_FORWARD, KC_TRANSPARENT, KC_TRANSPARENT, MS_BTN1,        MS_BTN3,        MS_BTN2,        KC_TRANSPARENT,
         KC_F19,         KC_F24,         MS_WHLU,        KC_F23,         KC_F18,                         MO(12),         KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT
     ),
+    // -----------------------------------------------------------------------------------------
+    // VISUAL LAYOUT (Layer 8):
+    //      RM_SATD, RM_HUED, RM_VALD, RM_SPDD,        KC_TRANSPARENT, KC_TRNS,        MO(12),         KC_TRANSPARENT, KC_MEDIA_PREV_TRACK, KC_MEDIA_STOP,       KC_MEDIA_NEXT_TRACK, KC_TRANSPARENT,
+    //      RM_SATU, RM_HUEU, RM_VALU, RM_SPDU,        KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_AUDIO_MUTE,  KC_AUDIO_VOL_DOWN,   KC_MEDIA_PLAY_PAUSE, KC_AUDIO_VOL_UP,     KC_TRANSPARENT,
+    //      RM_NEXT, KC_NO,   RM_TOGG, KC_NO,          KC_NO,          KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT,      KC_TRANSPARENT,      KC_TRANSPARENT,      KC_TRANSPARENT,
+    //      KC_TRNS, KC_TRNS, KC_TRNS, KC_TRANSPARENT, KC_TRANSPARENT,                 KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT,      KC_TRNS,             KC_TRNS,             KC_TRNS
+    // -----------------------------------------------------------------------------------------
     [8] = LAYOUT_tkl_ansi(
         KC_TRNS,        KC_TRNS,             KC_TRNS,             KC_TRANSPARENT,      KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRNS, KC_TRNS, KC_TRNS,
         KC_TRANSPARENT, KC_TRANSPARENT,      KC_TRANSPARENT,      KC_TRANSPARENT,      KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_NO,          KC_NO,          RM_TOGG, KC_NO,   RM_NEXT,
         KC_TRANSPARENT, KC_AUDIO_VOL_UP,     KC_MEDIA_PLAY_PAUSE, KC_AUDIO_VOL_DOWN,   KC_AUDIO_MUTE,  KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, RM_SPDU,        RM_VALU, RM_HUEU, RM_SATU,
         KC_TRANSPARENT, KC_MEDIA_NEXT_TRACK, KC_MEDIA_STOP,       KC_MEDIA_PREV_TRACK, KC_TRANSPARENT,                 MO(12),         KC_TRANSPARENT, RM_SPDD,        RM_VALD, RM_HUED, RM_SATD
     ),
+    // -----------------------------------------------------------------------------------------
+    // VISUAL LAYOUT (Layer 9):
+    //      LSFT(KC_F14), LSFT(KC_F15), LSFT(KC_F16), LSFT(KC_F17),   LSFT(KC_F18),   KC_TRNS,        MO(12),         LSFT(KC_F19),   LSFT(KC_F20),   LSFT(KC_F21), LSFT(KC_F22), LSFT(KC_F23),
+    //      LCTL(KC_F14), LCTL(KC_F15), LCTL(KC_F16), LCTL(KC_F17),   LCTL(KC_F18),   KC_TRANSPARENT, KC_TRANSPARENT, LCTL(KC_F19),   LCTL(KC_F20),   LCTL(KC_F21), LCTL(KC_F22), LCTL(KC_F23),
+    //      LALT(KC_F14), LALT(KC_F15), LALT(KC_F16), LALT(KC_F17),   LALT(KC_F18),   KC_TRANSPARENT, KC_TRANSPARENT, LALT(KC_F19),   LALT(KC_F20),   LALT(KC_F21), LALT(KC_F22), LALT(KC_F23),
+    //      KC_TRNS,      KC_TRNS,      KC_TRNS,      KC_TRANSPARENT, KC_TRANSPARENT,                 KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRNS,      KC_TRNS,      KC_TRNS
+    // -----------------------------------------------------------------------------------------
     [9] = LAYOUT_tkl_ansi(
         KC_TRNS,      KC_TRNS,      KC_TRNS,      KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRANSPARENT, KC_TRNS,      KC_TRNS,      KC_TRNS,
         LALT(KC_F23), LALT(KC_F22), LALT(KC_F21), LALT(KC_F20),   LALT(KC_F19),   KC_TRANSPARENT, KC_TRANSPARENT, LALT(KC_F18),   LALT(KC_F17),   LALT(KC_F16), LALT(KC_F15), LALT(KC_F14),
         LCTL(KC_F23), LCTL(KC_F22), LCTL(KC_F21), LCTL(KC_F20),   LCTL(KC_F19),   KC_TRANSPARENT, KC_TRANSPARENT, LCTL(KC_F18),   LCTL(KC_F17),   LCTL(KC_F16), LCTL(KC_F15), LCTL(KC_F14),
         LSFT(KC_F23), LSFT(KC_F22), LSFT(KC_F21), LSFT(KC_F20),   LSFT(KC_F19),                   MO(12),         LSFT(KC_F18),   LSFT(KC_F17),   LSFT(KC_F16), LSFT(KC_F15), LSFT(KC_F14)
     ),
+    // -----------------------------------------------------------------------------------------
+    // VISUAL LAYOUT (Layer 10):
+    //      KC_TAB,        KC_Q,    KC_W,    KC_E,        KC_R,     KC_TRNS, MO(12),  KC_NO,   MS_WHLD, MS_UP,   MS_WHLU, KC_NO,
+    //      KC_LEFT_SHIFT, KC_A,    KC_S,    KC_D,        KC_F,     KC_F17,  KC_NO,   TO(11),  MS_LEFT, MS_DOWN, MS_RGHT, MS_ACL0,
+    //      KC_LEFT_CTRL,  KC_F20,  KC_X,    KC_C,        KC_V,     KC_F18,  MS_BTN3, MS_ACL1, KC_NO,   KC_NO,   KC_NO,   KC_NO,
+    //      KC_TRNS,       KC_TRNS, KC_TRNS, KC_LEFT_ALT, KC_SPACE,          KC_F16,  MS_BTN1, MS_BTN4, KC_TRNS, KC_TRNS, KC_TRNS
+    // -----------------------------------------------------------------------------------------
     [10] = LAYOUT_tkl_ansi(
         KC_TRNS, KC_TRNS, KC_TRNS, MS_BTN4, MS_BTN1, MS_ACL2, KC_F16, KC_SPACE, KC_LEFT_ALT, KC_TRNS, KC_TRNS, KC_TRNS,
         KC_NO,   KC_NO,   KC_NO,   KC_NO,   MS_ACL1, MS_BTN3, KC_F18, KC_V,     KC_C,        KC_X,    KC_F20,  KC_LEFT_CTRL,
         MS_ACL0, MS_RGHT, MS_DOWN, MS_LEFT, TO(11),  KC_NO,   KC_F17, KC_F,     KC_D,        KC_S,    KC_A,    KC_LEFT_SHIFT,
         KC_NO,   MS_WHLU, MS_UP,   MS_WHLD, KC_NO,            MO(12), KC_R,     KC_E,        KC_W,    KC_Q,    KC_TAB
     ),
+    // -----------------------------------------------------------------------------------------
+    // VISUAL LAYOUT (Layer 11):
+    //      KC_NO,   KC_NO,   KC_W,    KC_NO, KC_NO, KC_TRNS, MO(12), KC_NO, KC_NO, KC_NO,   KC_NO,   KC_NO,
+    //      KC_NO,   KC_A,    KC_S,    KC_D,  KC_NO, KC_NO,   KC_C,   KC_NO, KC_U,  KC_I,    KC_O,    KC_Y,
+    //      KC_NO,   KC_NO,   KC_NO,   KC_NO, KC_NO, KC_NO,   KC_NO,  KC_NO, KC_J,  KC_K,    KC_L,    KC_H,
+    //      KC_TRNS, KC_TRNS, KC_TRNS, KC_NO, KC_W,           KC_NO,  KC_Z,  KC_NO, KC_TRNS, KC_TRNS, KC_TRNS
+    // -----------------------------------------------------------------------------------------
     [11] = LAYOUT_tkl_ansi(
         KC_TRNS, KC_TRNS, KC_TRNS, KC_NO, KC_Z,  KC_X,  KC_NO,  KC_W,  KC_NO, KC_TRNS, KC_TRNS, KC_TRNS,
         KC_H,    KC_L,    KC_K,    KC_J,  KC_NO, KC_NO, KC_NO,  KC_NO, KC_NO, KC_NO,   KC_NO,   KC_NO,
         KC_Y,    KC_O,    KC_I,    KC_U,  KC_NO, KC_C,  KC_NO,  KC_NO, KC_D,  KC_S,    KC_A,    KC_NO,
         KC_NO,   KC_NO,   KC_NO,   KC_NO, KC_NO,        MO(12), KC_NO, KC_NO, KC_W,    KC_NO,   KC_NO
     ),
+    // -----------------------------------------------------------------------------------------
+    // VISUAL LAYOUT (Layer 12):
+    //      MD_USB,  MD_BLE1, MD_BLE2, MD_BLE3, MD_24G,  KC_TRNS, KC_TRNS, EE_CLR,  KC_TRNS, KC_TRNS, QK_BAT2, QK_BAT,
+    //      KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,
+    //      KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,
+    //      TO(0),   KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,          KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS
+    // -----------------------------------------------------------------------------------------
     [12] = LAYOUT_tkl_ansi(
         KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, TO(0),
         KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,

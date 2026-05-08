@@ -546,13 +546,23 @@ def _format_layout_block(layer_num: int, keys: list) -> str:
 # GENERACION DE ARCHIVOS DE SALIDA
 # ==============================================================================
 def generate_keymap_c(layer_blocks: list, pre_blocks: list, post_blocks: list,
-                      fn_layers_def: str = "") -> str:
+                      fn_layers_def: str = "", invert_layout: bool = False) -> str:
     parts = [
         "#include QMK_KEYBOARD_H",
         '#include "rdmctmzt_common.h"',
         '#include "i18n.h"',
         "",
     ]
+    if invert_layout:
+        parts.append(
+            "// ==============================================================================\n"
+            "// ⚠️ WARNING: THIS KEYMAP WAS GENERATED WITH invert_layout=true ⚠️\n"
+            "// The physical layout is inverted vertically and horizontally from the source.\n"
+            "// The uncommented code below represents the hardware matrix.\n"
+            "// The commented blocks above each layer represent the visual layout.\n"
+            "// =============================================================================="
+        )
+        parts.append("")
     for block in pre_blocks:
         if block:
             parts.append(block)
@@ -661,13 +671,21 @@ def run():
         if layer_num in moon_layers:
             keycodes = build_keycodes(layer_num, moon_layers[layer_num], geonix_mapping,
                                       invert_layout, resolve_keycode_phase3, warnings)
+            if invert_layout:
+                visual_keycodes = build_keycodes(layer_num, moon_layers[layer_num], geonix_mapping,
+                                                 False, resolve_keycode_phase3, [])
+            else:
+                visual_keycodes = None
         else:
             # Capa solo definida en overrides: base completamente transparente
             keycodes = ["KC_TRNS"] * 47
+            visual_keycodes = ["KC_TRNS"] * 47 if invert_layout else None
 
         override_key = str(layer_num)
         if override_key in overrides:
             keycodes, patch_count = apply_override_patch(keycodes, overrides[override_key], invert_layout)
+            if invert_layout:
+                visual_keycodes, _ = apply_override_patch(visual_keycodes, overrides[override_key], False)
             if patch_count > 0:
                 total_patched += patch_count
             if layer_num in override_only:
@@ -676,6 +694,18 @@ def run():
                 print(f"[INFO] Override capa {layer_num}: {patch_count} posicion(es) parchada(s)")
 
         block = _format_layout_block(layer_num, keycodes)
+        if invert_layout and visual_keycodes:
+            visual_block = _format_layout_block(layer_num, visual_keycodes)
+            visual_lines = visual_block.split('\n')
+            commented_visual = [
+                f"    // -----------------------------------------------------------------------------------------",
+                f"    // VISUAL LAYOUT (Layer {layer_num}):"
+            ]
+            for line in visual_lines[1:-1]:
+                commented_visual.append(line.replace('        ', '    //      ', 1))
+            commented_visual.append(f"    // -----------------------------------------------------------------------------------------")
+            block = "\n".join(commented_visual) + "\n" + block
+
         layer_blocks.append(block)
 
     if total_patched:
@@ -761,7 +791,7 @@ def run():
         else:
             print("[WARN] No se encontró FN_LAYERS_VALUES en led_indicators.h")
 
-    keymap_c = generate_keymap_c(layer_blocks, pre_blocks, post_blocks, fn_layers_def)
+    keymap_c = generate_keymap_c(layer_blocks, pre_blocks, post_blocks, fn_layers_def, invert_layout)
     files = {
         "keymap.c":  keymap_c,
         "rules.mk":  generate_rules_mk(),
