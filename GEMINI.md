@@ -90,7 +90,7 @@ The system supports two battery display keycodes:
 - `QK_BAT2`: A custom numerical display using 3x5 digit matrices and a secondary progress bar.
 
 The `keyboard_common.c` library has been refactored to support configurable Fn layers:
-- **With `led_indicators.h`** (`FN_LAYER_COUNT` defined): detects any `MO(N)` where N is in `FN_LAYERS[]` to trigger the connection-mode indicator while held.
+- **With `led_indicators.h`** (`FN_LAYER_COUNT` defined): detects any `MO(N)` where N is in `FN_LAYERS[]` to trigger the connection-mode indicator while held. If `FN_LAYER_EXCLUSIVE` is also defined, it acts as a full-board overlay, turning off all other LEDs.
 - **Without `led_indicators.h`** (keymap `default` and others): falls back to hardcoded `MO(2)` / `MO(3)` — fully backward-compatible.
 
 ## Special MCU Considerations (ES32FS026)

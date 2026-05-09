@@ -443,6 +443,47 @@ void kb_show_reset_progress(void) {
 // ============================================================================
 
 bool kb_rgb_matrix_indicators_common(uint8_t led_min, uint8_t led_max) {
+    // Exclusive full-board overlays
+    if (User_Key_Batt_Num_Show) {
+        for (uint8_t i = 0; i < RGB_MATRIX_LED_COUNT; i++) {
+            rgb_matrix_set_color(i, 0, 0, 0);
+        }
+        kb_led_batt_number_show();
+        return false;
+    }
+
+#ifdef BATTERY2_DIGIT_TENS_ARRAY
+    if (User_Key_Batt2_Show) {
+        for (uint8_t i = 0; i < RGB_MATRIX_LED_COUNT; i++) {
+            rgb_matrix_set_color(i, 0, 0, 0);
+        }
+        kb_led_batt2_number_show();
+        return false;
+    }
+#endif
+
+#ifdef FN_LAYER_EXCLUSIVE
+    if (Key_Fn_Status) {
+        for (uint8_t i = 0; i < RGB_MATRIX_LED_COUNT; i++) {
+            rgb_matrix_set_color(i, 0, 0, 0);
+        }
+        kb_show_current_connection_mode();
+        return false;
+    }
+#endif
+
+    // 1. Base overrides (background)
+    if (Test_Led) {
+        kb_user_test_colour_show();
+    } else if (Led_Rf_Pair_Flg && (Keyboard_Info.Key_Mode != QMK_USB_MODE)) {
+        kb_led_rf_mode_show();
+    } else if (User_Power_Low) {
+        kb_led_power_low_show();
+    } else {
+        kb_user_point_show();
+    }
+
+    // 2. Overlays (drawn on top of the base overrides)
     // Show EEPROM reset progress (blinking) when EE_CLR is held
     if (Key_Reset_Status) {
         kb_show_reset_progress();
@@ -453,68 +494,9 @@ bool kb_rgb_matrix_indicators_common(uint8_t led_min, uint8_t led_max) {
 #endif
     kb_update_state_indicators();
 
-    // Show current connection mode when Fn key is held
-    if (Key_Fn_Status) {
+    // Show current connection mode when Fn key is held, or when mode indicator is shown
+    if (Key_Fn_Status || Show_Mode_Indicator) {
         kb_show_current_connection_mode();
-    }
-
-    // Show temporary mode/battery indicators when triggered
-    if (User_Key_Batt_Num_Show || User_Key_Batt2_Show || Show_Mode_Indicator) {
-        // Reuse the connection mode indicator function
-        kb_show_current_connection_mode();
-
-        if (User_Key_Batt_Num_Show) {
-            uint8_t battery_leds = (Keyboard_Info.Batt_Number * BATTERY_LED_COUNT) / 100;
-            if (battery_leds > BATTERY_LED_COUNT) battery_leds = BATTERY_LED_COUNT;
-
-            uint8_t bat_r, bat_g, bat_b;
-            kb_get_battery_color(Keyboard_Info.Batt_Number, &bat_r, &bat_g, &bat_b);
-
-            for (uint8_t i = 0; i < BATTERY_LED_COUNT; i++) {
-                if (i < battery_leds) {
-                    kb_set_led_color(Led_Batt_Index_Tab[i], bat_r, bat_g, bat_b);
-                } else {
-                    kb_led_off(Led_Batt_Index_Tab[i]);
-                }
-            }
-        }
-#ifdef BATTERY2_DIGIT_TENS_ARRAY
-        if (User_Key_Batt2_Show) {
-            uint8_t batt_val = (Keyboard_Info.Batt_Number == 100) ? 99 : Keyboard_Info.Batt_Number;
-            uint8_t battery2_leds = (batt_val * BATTERY2_LED_COUNT) / 100;
-            if (battery2_leds > BATTERY2_LED_COUNT) battery2_leds = BATTERY2_LED_COUNT;
-
-            uint8_t bat_r, bat_g, bat_b;
-            kb_get_battery_color(batt_val, &bat_r, &bat_g, &bat_b);
-
-#if BATTERY2_LED_COUNT > 0
-            const uint8_t Led_Batt2_Index_Tab[BATTERY2_LED_COUNT] = BATTERY2_LED_ARRAY;
-            for (uint8_t i = 0; i < BATTERY2_LED_COUNT; i++) {
-                if (i < battery2_leds) {
-                    kb_set_led_color(Led_Batt2_Index_Tab[i], bat_r, bat_g, bat_b);
-                } else {
-                    kb_led_off(Led_Batt2_Index_Tab[i]);
-                }
-            }
-#endif
-        }
-#endif
-    }
-
-    if (User_Power_Low) {
-        kb_led_power_low_show();
-    } else if (Test_Led) {
-        kb_user_test_colour_show();
-    } else if (Led_Rf_Pair_Flg && (Keyboard_Info.Key_Mode != QMK_USB_MODE)) {
-        kb_led_rf_mode_show();
-    } else if (User_Key_Batt_Num_Show) {
-        kb_led_batt_number_show();
-#ifdef BATTERY2_DIGIT_TENS_ARRAY
-    } else if (User_Key_Batt2_Show) {
-        kb_led_batt2_number_show();
-#endif
-    } else {
-        kb_user_point_show();
     }
 
     return false;

@@ -7,7 +7,8 @@
 
     "indicator_layers": {
       "_comment": "Capas MO(N) que muestran el modo de conexión activo mientras se mantienen pulsadas.",
-      "layers": [12]
+      "layers": [12],
+      "exclusive": true
     },
 
     "usb":  { "pos": [0, 0] },

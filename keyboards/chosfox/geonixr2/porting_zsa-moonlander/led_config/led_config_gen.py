@@ -270,8 +270,11 @@ def generate(cfg: dict, invert: bool) -> str:
     validated = [validate_layer(l, f"indicator_layers.layers[{i}]") for i, l in enumerate(fn_layers)]
     fn_count  = len(validated)
     fn_list   = ", ".join(str(l) for l in validated)
+    fn_excl   = fn_cfg.get("exclusive", False)
 
     lines.append(f"#define FN_LAYER_COUNT {fn_count}")
+    if fn_excl:
+        lines.append(f"#define FN_LAYER_EXCLUSIVE 1")
     lines.append("")
 
     # Sentinel comment for convert_moonlander.py to extract values

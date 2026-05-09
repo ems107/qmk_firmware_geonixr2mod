@@ -72,5 +72,6 @@ static const uint16_t BATTERY2_DIGIT_PATTERNS[10] = {
 // Layers that activate the connection mode indicator (Fn-held)
 // ============================================================
 #define FN_LAYER_COUNT 1
+#define FN_LAYER_EXCLUSIVE 1
 
 // FN_LAYERS_VALUES: 12

@@ -263,7 +263,8 @@ Con el layout actual (capa 12), las posiciones visuales de los keycodes de conex
 
     "indicator_layers": {
       "_comment": "Capas MO(N) que muestran el modo activo mientras se mantienen.",
-      "layers": [12]
+      "layers": [12],
+      "exclusive": true
     },
 
     "usb":  { "pos": [0, 0] },
@@ -342,6 +343,7 @@ Con el layout actual (capa 12), las posiciones visuales de los keycodes de conex
 | `connection_leds.usb/ble1/ble2/ble3/g24.pos` | Posición visual del LED de cada modo |
 | `connection_leds.ble1/ble2/ble3.name` | Nombre del perfil BT (se envía al módulo BLE) |
 | `connection_leds.indicator_layers.layers` | Capas `MO(N)` que activan el indicador Fn |
+| `connection_leds.indicator_layers.exclusive` | Si es `true`, apaga el resto de LEDs al mostrar la conexión |
 | `caps_lock_led.pos` | Posición visual del LED de Caps Lock |
 | `win_lock_led.pos` | Posición visual del LED de Win Lock |
 | `battery_low_led.pos` | Posición visual del LED de batería crítica |
